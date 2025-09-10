@@ -4,6 +4,7 @@ import * as DefaultIcon from '../DefaultIcon/DefaultIcon.ts'
 import * as DirentType from '../DirentType/DirentType.ts'
 import * as GetAbsoluteIconPath from '../GetAbsoluteIconPath/GetAbsoluteIconPath.ts'
 import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
+import * as Languages from '../Languages/Languages.ts'
 import * as Logger from '../Logger/Logger.ts'
 
 const getFileIconFromFileNames = (iconTheme: any, fileNameLower: string): string => {
@@ -32,7 +33,7 @@ const getFileIconFromFileExtensions = (iconTheme: any, fileNameLower: string): s
 
 const getFileIconFromLanguageIds = (iconTheme: any, fileNameLower: string): string => {
   if (iconTheme.languageIds) {
-    const languageId: string = ''
+    const languageId: string = Languages.getLanguageId(fileNameLower)
     const languageIcon = iconTheme.languageIds[languageId]
     if (languageId === 'jsx' && fileNameLower.endsWith('.js')) {
       const alternativeFileIcon = iconTheme.languageIds.javascript
@@ -76,12 +77,10 @@ export const getFileIcons = (fileNames: readonly any[]): readonly string[] => {
 
 export const getFolderNameIcon = (folderName: any): string => {
   const iconTheme = IconThemeState.getIconTheme()
-  // @ts-ignore
   if (!iconTheme || !iconTheme.folderNames || !iconTheme.iconDefinitions) {
     return ''
   }
   const folderNameLower = folderName.toLowerCase()
-  // @ts-ignore
   const folderIcon = iconTheme.folderNames[folderNameLower]
   if (folderIcon) {
     return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, folderIcon)
@@ -98,11 +97,9 @@ const getFolderIconExpanded = (folder: any): string => {
   if (!iconTheme) {
     return ''
   }
-  // @ts-ignore
   if (!iconTheme.folderNamesExpanded) {
     return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, DefaultIcon.FolderOpen)
   }
-  // @ts-ignore
   const folderName = iconTheme.folderNamesExpanded[folder.name.toLowerCase()]
   if (folderName) {
     return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, folderName)
@@ -133,10 +130,11 @@ export const getIcon = (dirent: any): string => {
 
 export const getIcons = (iconRequests: readonly any[]): readonly string[] => {
   const Folder = 2
-  return iconRequests.map((request) => {
+  const icons = iconRequests.map((request) => {
     if (request.type === Folder) {
       return getFolderIcon({ name: request.name })
     }
     return getFileIcon({ name: request.name })
   })
+  return icons
 }
