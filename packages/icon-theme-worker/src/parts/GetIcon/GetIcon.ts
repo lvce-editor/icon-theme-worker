@@ -6,19 +6,17 @@ import * as GetAbsoluteIconPath from '../GetAbsoluteIconPath/GetAbsoluteIconPath
 import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 import * as Logger from '../Logger/Logger.ts'
 
-export const getFileNameIcon = (file: string): string => {
-  Assert.string(file)
-  const iconTheme = IconThemeState.getIconTheme()
-  const fileNameLower = file.toLowerCase()
-  if (!iconTheme) {
-    return ''
-  }
+const getFileIconFromFileNames = (iconTheme: any, fileNameLower: string): string => {
   if (iconTheme.fileNames) {
     const fileNameIcon = iconTheme.fileNames[fileNameLower]
     if (fileNameIcon) {
       return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, fileNameIcon)
     }
   }
+  return ''
+}
+
+const getFileIconFromFileExtensions = (iconTheme: any, fileNameLower: string): string => {
   if (iconTheme.fileExtensions) {
     let index = -1
     while ((index = fileNameLower.indexOf(Character.Dot, index + 1)) !== -1) {
@@ -29,6 +27,10 @@ export const getFileNameIcon = (file: string): string => {
       }
     }
   }
+  return ''
+}
+
+const getFileIconFromLanguageIds = (iconTheme: any, fileNameLower: string): string => {
   if (iconTheme.languageIds) {
     const languageId: string = ''
     const languageIcon = iconTheme.languageIds[languageId]
@@ -42,7 +44,22 @@ export const getFileNameIcon = (file: string): string => {
       return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, languageIcon)
     }
   }
-  return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, DefaultIcon.File)
+  return ''
+}
+
+export const getFileNameIcon = (file: string): string => {
+  Assert.string(file)
+  const iconTheme = IconThemeState.getIconTheme()
+  const fileNameLower = file.toLowerCase()
+  if (!iconTheme) {
+    return ''
+  }
+  return (
+    getFileIconFromFileNames(iconTheme, fileNameLower) ||
+    getFileIconFromFileExtensions(iconTheme, fileNameLower) ||
+    getFileIconFromLanguageIds(iconTheme, fileNameLower) ||
+    GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, DefaultIcon.File)
+  )
 }
 
 export const getFileIcon = (file: any): string => {
