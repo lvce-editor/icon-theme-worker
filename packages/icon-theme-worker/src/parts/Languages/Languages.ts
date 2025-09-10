@@ -7,8 +7,10 @@ const state = {
 export const addLanguages = (languages: readonly any[]): void => {
   for (const language of languages) {
     const { id, extensions } = language
-    for (const extension of extensions) {
-      state.languages[extension] = id
+    if (extensions) {
+      for (const extension of extensions) {
+        state.languages[extension] = id
+      }
     }
   }
 }
