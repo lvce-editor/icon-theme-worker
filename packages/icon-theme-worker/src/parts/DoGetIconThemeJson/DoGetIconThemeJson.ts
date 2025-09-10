@@ -3,7 +3,7 @@ import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
 import * as GetJson from '../GetJson/GetJson.ts'
 import * as PlatformType from '../PlatformType/PlatformType.ts'
 
-export const getIconThemeJson = async (extensions: readonly any[], iconThemeId: string, assetDir: string, platform: number): Promise<any> => {
+export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId: string, assetDir: string, platform: number): Promise<any> => {
   if (platform === PlatformType.Web) {
     const url = GetIconThemeUrl.getIconThemeUrl(assetDir, iconThemeId)
     const json = await GetJson.getJson(url)
