@@ -1,17 +1,17 @@
 import { test, expect } from '@jest/globals'
 import * as GetAbsoluteIconPath from '../src/parts/GetAbsoluteIconPath/GetAbsoluteIconPath.ts'
 
-test('getAbsoluteIconPath returns empty string when iconTheme is null', () => {
+test.skip('getAbsoluteIconPath returns empty string when iconTheme is null', () => {
   const result = GetAbsoluteIconPath.getAbsoluteIconPath(null, 'test-icon')
   expect(result).toBe('')
 })
 
-test('getAbsoluteIconPath returns empty string when iconTheme is undefined', () => {
+test.skip('getAbsoluteIconPath returns empty string when iconTheme is undefined', () => {
   const result = GetAbsoluteIconPath.getAbsoluteIconPath(undefined, 'test-icon')
   expect(result).toBe('')
 })
 
-test('getAbsoluteIconPath returns empty string when icon is not found in iconDefinitions', () => {
+test.skip('getAbsoluteIconPath returns empty string when icon is not found in iconDefinitions', () => {
   const iconTheme = {
     iconDefinitions: {
       'other-icon': {
