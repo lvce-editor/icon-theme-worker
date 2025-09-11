@@ -1,7 +1,7 @@
+import { DirentType } from '@lvce-editor/constants'
 import * as Assert from '../Assert/Assert.ts'
 import * as Character from '../Character/Character.ts'
 import * as DefaultIcon from '../DefaultIcon/DefaultIcon.ts'
-import * as DirentType from '../DirentType/DirentType.ts'
 import * as GetAbsoluteIconPath from '../GetAbsoluteIconPath/GetAbsoluteIconPath.ts'
 import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 import * as Languages from '../Languages/Languages.ts'
