@@ -11,6 +11,7 @@ export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId
     return {
       json,
       extensionPath: `${assetDir}/extensions/builtin.${iconThemeId}`,
+      extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
     }
   }
   for (const webExtension of extensions) {
