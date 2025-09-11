@@ -14,7 +14,8 @@ export const loadIconThemeJson = async (extensions: readonly any[], iconThemeId:
   if (!iconThemeId) {
     return ''
   }
-  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform)
+  const locationProtocol = location.protocol
+  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform, locationProtocol)
   IconThemeState.setTheme(json)
   return json
 }
