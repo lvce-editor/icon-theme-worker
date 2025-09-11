@@ -6,11 +6,6 @@ export const getFileExtensionIndex = (file: string): number => {
   return file.lastIndexOf(Character.Dot)
 }
 
-export const getFileExtension = (file: string): string => {
-  const index = getFileExtensionIndex(file)
-  return file.slice(index)
-}
-
 export const getNthFileExtension = (file: string, startIndex: number): number => {
   return file.lastIndexOf(Character.Dot, startIndex)
 }
