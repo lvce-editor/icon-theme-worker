@@ -16,6 +16,10 @@ export const addLanguages = (languages: readonly Language[]): void => {
   }
 }
 
+export const reset = (): void => {
+  state.languages = Object.create(null)
+}
+
 export const getLanguageId = (fileName: string): string => {
   const { languages } = state
   const extensionIndex = GetFileExtension.getFileExtensionIndex(fileName)
