@@ -1,10 +1,11 @@
+import type { Language } from '../Language/Language.ts'
 import * as GetFileExtension from '../GetFileExtension/GetFileExtension.ts'
 
 const state = {
   languages: Object.create(null),
 }
 
-export const addLanguages = (languages: readonly any[]): void => {
+export const addLanguages = (languages: readonly Language[]): void => {
   for (const language of languages) {
     const { id, extensions } = language
     if (extensions) {
