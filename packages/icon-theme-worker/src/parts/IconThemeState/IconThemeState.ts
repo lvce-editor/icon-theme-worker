@@ -1,6 +1,6 @@
 import * as InitialIconTheme from '../InitialIconTheme/InitialIconTheme.ts'
 
-export const state = {
+const state = {
   seenFiles: [],
   seenFolders: [],
   hasWarned: [],
