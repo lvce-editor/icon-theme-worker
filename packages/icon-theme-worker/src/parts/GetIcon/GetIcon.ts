@@ -75,7 +75,7 @@ export const getFileIcons = (fileNames: readonly any[]): readonly string[] => {
   return icons
 }
 
-export const getFolderNameIcon = (folderName: any): string => {
+export const getFolderNameIcon = (folderName: string): string => {
   const iconTheme = IconThemeState.getIconTheme()
   if (!iconTheme || !iconTheme.folderNames || !iconTheme.iconDefinitions) {
     return ''
