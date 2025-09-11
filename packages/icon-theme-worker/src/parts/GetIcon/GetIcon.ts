@@ -1,4 +1,5 @@
 import { DirentType } from '@lvce-editor/constants'
+import type { Dirent } from '../Dirent/Dirent.ts'
 import * as Assert from '../Assert/Assert.ts'
 import * as Character from '../Character/Character.ts'
 import * as DefaultIcon from '../DefaultIcon/DefaultIcon.ts'
@@ -107,7 +108,7 @@ const getFolderIconExpanded = (folder: any): string => {
   return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, DefaultIcon.FolderOpen)
 }
 
-export const getIcon = (dirent: any): string => {
+export const getIcon = (dirent: Dirent): string => {
   switch (dirent.type) {
     case DirentType.File:
     case DirentType.SymLinkFile:
