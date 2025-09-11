@@ -6,6 +6,7 @@ export const findMatchingIconThemeExtension = (extensions: readonly any[], iconT
           return {
             ...iconTheme,
             extensionPath: extension.path,
+            extensionUri: extension.uri,
           }
         }
       }
