@@ -23,6 +23,7 @@ export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId
         return {
           json,
           extensionPath: webExtension.path,
+          extensionBaseUrl: baseUrl,
         }
       }
     }

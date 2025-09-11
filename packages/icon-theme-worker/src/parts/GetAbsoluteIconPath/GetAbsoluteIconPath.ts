@@ -7,16 +7,16 @@ export const getAbsoluteIconPath = (iconTheme: any, icon: string): string => {
     return ''
   }
   const result = iconTheme.iconDefinitions[icon]
-  const extensionPath = IconThemeState.getExtensionPath()
+  const baseUrl = IconThemeState.getExtensionBaseUrl()
   if (result) {
-    if (extensionPath.startsWith('http://') || extensionPath.startsWith('https://')) {
-      return `${extensionPath}${result}`
+    if (baseUrl.startsWith('http://') || baseUrl.startsWith('https://')) {
+      return `${baseUrl}${result}`
     }
-    if (extensionPath.includes(PathSeparator.BackSlash)) {
-      const extensionUri = extensionPath.replaceAll(PathSeparator.BackSlash, PathSeparator.Slash)
+    if (baseUrl.includes(PathSeparator.BackSlash)) {
+      const extensionUri = baseUrl.replaceAll(PathSeparator.BackSlash, PathSeparator.Slash)
       return `/remote/${extensionUri}${result}`
     }
-    return GetRemoteSrc.getRemoteSrc(`${extensionPath}${result}`)
+    return GetRemoteSrc.getRemoteSrc(`${baseUrl}${result}`)
   }
   return ''
 }
