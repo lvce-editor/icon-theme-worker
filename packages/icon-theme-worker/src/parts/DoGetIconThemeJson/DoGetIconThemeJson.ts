@@ -4,13 +4,7 @@ import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
 import * as GetJson from '../GetJson/GetJson.ts'
 import * as PlatformType from '../PlatformType/PlatformType.ts'
 
-export const doGetIconThemeJson = async (
-  extensions: readonly any[],
-  iconThemeId: string,
-  assetDir: string,
-  platform: number,
-  locationProtocol: string,
-): Promise<any> => {
+export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId: string, assetDir: string, platform: number): Promise<any> => {
   if (platform === PlatformType.Web) {
     const url = GetIconThemeUrl.getIconThemeUrl(assetDir, iconThemeId)
     const json = await GetJson.getJson(url)
@@ -23,7 +17,7 @@ export const doGetIconThemeJson = async (
     if (webExtension.iconThemes) {
       for (const iconTheme of webExtension.iconThemes) {
         // TODO handle error when icon theme path is not of type string
-        const baseUrl = getExtensionBaseUrl(webExtension, locationProtocol)
+        const baseUrl = getExtensionBaseUrl(webExtension, platform)
         const iconThemeUrl = `${baseUrl}/${iconTheme.path}`
         const json = await GetJson.getJson(iconThemeUrl)
         return {
