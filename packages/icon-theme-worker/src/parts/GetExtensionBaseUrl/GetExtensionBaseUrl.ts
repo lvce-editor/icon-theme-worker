@@ -1,4 +1,4 @@
-import * as PlatformType from '../PlatformType/PlatformType.ts'
+import { PlatformType } from '@lvce-editor/constants'
 
 export const getExtensionBaseUrl = (webExtension: any, platform: number): string => {
   if (webExtension.uri && webExtension.uri.startsWith('file://') && platform === PlatformType.Remote) {
