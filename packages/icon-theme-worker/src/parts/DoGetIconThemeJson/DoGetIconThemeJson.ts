@@ -1,8 +1,8 @@
+import { PlatformType } from '@lvce-editor/constants'
 import * as FindMatchingIconThemeExtension from '../FindMatchingIconThemeExtension/FindMatchingIconThemeExtension.ts'
 import { getExtensionBaseUrl } from '../GetExtensionBaseUrl/GetExtensionBaseUrl.ts'
 import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
 import * as GetJson from '../GetJson/GetJson.ts'
-import * as PlatformType from '../PlatformType/PlatformType.ts'
 
 export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId: string, assetDir: string, platform: number): Promise<any> => {
   if (platform === PlatformType.Web) {
