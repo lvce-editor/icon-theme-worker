@@ -1,3 +1,4 @@
+// TODO handle case when extension json or properties are invalid / unexpected
 export const findMatchingIconThemeExtension = (extensions: readonly any[], iconThemeId: string): any => {
   for (const extension of extensions) {
     if (extension && extension.iconThemes) {
