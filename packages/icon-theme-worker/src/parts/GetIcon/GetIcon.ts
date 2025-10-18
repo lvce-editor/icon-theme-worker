@@ -78,15 +78,21 @@ export const getFileIcons = (fileNames: readonly any[]): readonly string[] => {
 
 export const getFolderNameIcon = (folderName: string): string => {
   const iconTheme = IconThemeState.getIconTheme()
-  if (!iconTheme || !iconTheme.folderNames || !iconTheme.iconDefinitions) {
+  if (!iconTheme || !iconTheme.iconDefinitions) {
     return ''
   }
-  const folderNameLower = folderName.toLowerCase()
-  const folderIcon = iconTheme.folderNames[folderNameLower]
-  if (folderIcon) {
-    return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, folderIcon)
+  const { iconDefinitions, folderNames } = iconTheme
+  if (folderNames) {
+    const folderNameLower = folderName.toLowerCase()
+    const folderIcon = iconTheme.folderNames[folderNameLower]
+    if (folderIcon) {
+      return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, folderIcon)
+    }
   }
-  return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, DefaultIcon.Folder)
+  if (iconDefinitions[DefaultIcon.Folder]) {
+    return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, DefaultIcon.Folder)
+  }
+  return ''
 }
 
 export const getFolderIcon = (folder: any): string => {
