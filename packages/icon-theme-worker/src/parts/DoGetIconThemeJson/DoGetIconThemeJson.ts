@@ -14,21 +14,6 @@ export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId
       extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
     }
   }
-  for (const webExtension of extensions) {
-    if (webExtension.iconThemes) {
-      for (const iconTheme of webExtension.iconThemes) {
-        // TODO handle error when icon theme path is not of type string
-        const baseUrl = getExtensionBaseUrl(webExtension, platform)
-        const iconThemeUrl = `${baseUrl}/${iconTheme.path}`
-        const json = await GetJson.getJson(iconThemeUrl)
-        return {
-          json,
-          extensionPath: webExtension.path,
-          extensionBaseUrl: baseUrl,
-        }
-      }
-    }
-  }
   const iconTheme = FindMatchingIconThemeExtension.findMatchingIconThemeExtension(extensions, iconThemeId)
   if (!iconTheme) {
     return undefined
