@@ -2,6 +2,7 @@ import { test, expect } from '@jest/globals'
 import type { Dirent } from '../src/parts/Dirent/Dirent.ts'
 import * as DefaultIcon from '../src/parts/DefaultIcon/DefaultIcon.ts'
 import * as GetIcon from '../src/parts/GetIcon/GetIcon.ts'
+import { getIcons } from '../src/parts/GetIcons/GetIcons.ts'
 
 test('getFileNameIcon should return empty string when no iconTheme', () => {
   // This test verifies the basic behavior when iconTheme is null
@@ -85,7 +86,7 @@ test('getIcons should handle mixed file and folder requests', () => {
     { name: 'src', type: 2 }, // Folder
   ]
 
-  const result = GetIcon.getIcons(requests)
+  const result = getIcons(requests)
   expect(Array.isArray(result)).toBe(true)
   expect(result).toHaveLength(2)
   expect(typeof result[0]).toBe('string')
