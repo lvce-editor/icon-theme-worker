@@ -1,5 +1,6 @@
 import { PlatformType } from '@lvce-editor/constants'
 import * as FindMatchingIconThemeExtension from '../FindMatchingIconThemeExtension/FindMatchingIconThemeExtension.ts'
+import { getIconThemeJsonUrl } from '../GetIconThemeJsonUrl/GetIconThemeJsonUrl.ts'
 import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
 import * as GetJson from '../GetJson/GetJson.ts'
 
@@ -13,13 +14,15 @@ export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId
       extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
     }
   }
-  const iconTheme = FindMatchingIconThemeExtension.findMatchingIconThemeExtension(extensions, iconThemeId)
+  const iconTheme = FindMatchingIconThemeExtension.findMatchingIconThemeExtension(extensions, iconThemeId, platform)
   if (!iconTheme) {
     return undefined
   }
-  const iconThemePath = `${iconTheme.extensionPath}/${iconTheme.path}`
-  const iconThemeJson = await GetJson.getJson(iconThemePath)
+  const iconThemeUrl = getIconThemeJsonUrl(iconTheme)
+  const iconThemeJson = await GetJson.getJson(iconThemeUrl)
   return {
+    extensionUri: iconTheme.extensionUri || '',
+    extensionRemoteUri: iconTheme.extensionRemoteUri || '',
     extensionPath: iconTheme.extensionPath,
     json: iconThemeJson,
   }
