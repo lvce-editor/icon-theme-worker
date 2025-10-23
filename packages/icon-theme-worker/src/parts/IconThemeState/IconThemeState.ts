@@ -25,10 +25,6 @@ export const setTheme = (iconTheme: any): void => {
   }
 }
 
-export const getExtensionPath = (): string => {
-  return state.extensionPath || ''
-}
-
 export const getExtensionBaseUrl = (): string => {
   return state.extensionBaseUrl || ''
 }
