@@ -12,6 +12,7 @@ export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId
       json,
       extensionPath: `${assetDir}/extensions/builtin.${iconThemeId}`,
       extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
+      extensionRemoteUri: `${assetDir}/extensions/builtin.${iconThemeId}`,
     }
   }
   const iconTheme = FindMatchingIconThemeExtension.findMatchingIconThemeExtension(extensions, iconThemeId, platform)
