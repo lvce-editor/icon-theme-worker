@@ -19,7 +19,7 @@ const hasHttpExtensionPath = (iconTheme: any): boolean => {
 export const setTheme = (iconTheme: any): void => {
   state.iconTheme = iconTheme.json
   state.extensionPath = iconTheme.extensionPath
-  state.extensionBaseUrl = iconTheme.extensionBaseUrl
+  state.extensionBaseUrl = iconTheme.extensionRemoteUri || iconTheme.extensionBaseUrl
   if (!state.extensionBaseUrl && hasHttpExtensionPath(iconTheme)) {
     state.extensionBaseUrl = iconTheme.extensionPath
   }
