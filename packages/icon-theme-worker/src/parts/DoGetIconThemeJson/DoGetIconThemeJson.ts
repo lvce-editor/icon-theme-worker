@@ -16,7 +16,7 @@ export const doGetIconThemeJson = async (
   const bucketName = 'lvce-editor-icon-themes'
   if (platform === PlatformType.Web) {
     const url = GetIconThemeUrl.getIconThemeUrl(assetDir, iconThemeId)
-    const json = await getJsonCached(url, useCache, bucketName, cacheName)
+    const json = await getJsonCached(url, useCache, bucketName, cacheName, iconThemeId)
     return {
       extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
       extensionRemoteUri: `${assetDir}/extensions/builtin.${iconThemeId}`,
@@ -30,7 +30,7 @@ export const doGetIconThemeJson = async (
     return undefined
   }
   const iconThemeUrl = getIconThemeJsonUrl(iconTheme)
-  const iconThemeJson = await getJsonCached(iconThemeUrl, useCache, bucketName, cacheName)
+  const iconThemeJson = await getJsonCached(iconThemeUrl, useCache, bucketName, cacheName, iconThemeId)
   return {
     extensionPath: iconTheme.extensionPath,
     extensionRemoteUri: iconTheme.extensionRemoteUri || '',
