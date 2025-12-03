@@ -1,4 +1,5 @@
 import { getCache } from '../GetCache/GetCache.ts'
+import { getIconThemeCacheKey } from '../GetIconThemeCacheKey/GetIconThemeCacheKey.ts'
 import { getJson } from '../GetJson/GetJson.ts'
 import { putInCache } from '../PutInCache/PutInCache.ts'
 
@@ -8,8 +9,19 @@ export const getJsonCached = async (url: string, useCache: boolean, bucketName: 
   }
 
   try {
+    const headResponse = await fetch(url, { method: 'HEAD' })
+    if (!headResponse.ok) {
+      throw new Error(headResponse.statusText)
+    }
+
+    const etag = headResponse.headers.get('etag')
+    if (!etag) {
+      return getJson(url)
+    }
+
     const cache = await getCache(bucketName, cacheName)
-    const cachedResponse = await cache.match(url)
+    const cacheKey = await getIconThemeCacheKey(etag)
+    const cachedResponse = await cache.match(cacheKey)
 
     if (cachedResponse) {
       const clonedResponse = cachedResponse.clone()
@@ -21,7 +33,7 @@ export const getJsonCached = async (url: string, useCache: boolean, bucketName: 
       throw new Error(response.statusText)
     }
 
-    await putInCache(url, response.clone(), cache)
+    await putInCache(cacheKey, response.clone(), cache)
     return await response.json()
   } catch {
     return getJson(url)
