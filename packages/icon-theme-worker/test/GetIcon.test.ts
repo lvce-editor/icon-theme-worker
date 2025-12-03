@@ -1,8 +1,13 @@
-import { test, expect } from '@jest/globals'
+import { test, expect, jest, beforeEach } from '@jest/globals'
 import type { Dirent } from '../src/parts/Dirent/Dirent.ts'
 import * as DefaultIcon from '../src/parts/DefaultIcon/DefaultIcon.ts'
 import * as GetIcon from '../src/parts/GetIcon/GetIcon.ts'
 import { getIcons } from '../src/parts/GetIcons/GetIcons.ts'
+
+beforeEach(() => {
+  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  jest.spyOn(console, 'error').mockImplementation(() => {})
+})
 
 test('getFileNameIcon should return empty string when no iconTheme', () => {
   // This test verifies the basic behavior when iconTheme is null
