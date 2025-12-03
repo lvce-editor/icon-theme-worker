@@ -7,10 +7,12 @@ import * as GetJsonCached from '../src/parts/GetJsonCached/GetJsonCached.ts'
 
 const originalFetch = globalThis.fetch
 const originalStorageBuckets = (globalThis.navigator as any).storageBuckets
+const originalLocation = (globalThis as any).location
 
 beforeEach(() => {
   globalThis.fetch = originalFetch
   ;(globalThis.navigator as any).storageBuckets = originalStorageBuckets
+  ;(globalThis as any).location = originalLocation || { protocol: 'https:' }
   GetCache.resetCache()
 })
 
@@ -67,9 +69,36 @@ type MockFetchOptions = {
 
 const mockFetch = (options: MockFetchOptions): typeof globalThis.fetch => {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    options.onCall?.(input, init)
-
     const urlString = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
+    const method = init?.method || (typeof input === 'object' && 'method' in input ? input.method : 'GET')
+
+    const headResponse = options.onCall?.(input, init)
+    if (headResponse) {
+      return headResponse
+    }
+
+    if (method === 'HEAD') {
+      if (options.urlMatcher) {
+        const matched = options.urlMatcher(urlString)
+        if (matched && matched.getResponse) {
+          const etag = urlString.includes('api1') ? '"test-etag-1"' : urlString.includes('api2') ? '"test-etag-2"' : '"test-etag"'
+          return new Response(null, {
+            status: 200,
+            headers: {
+              etag,
+            },
+          })
+        }
+      }
+      if (options.getResponse) {
+        return new Response(null, {
+          status: 200,
+          headers: {
+            etag: '"test-etag"',
+          },
+        })
+      }
+    }
 
     if (options.urlMatcher) {
       const matched = options.urlMatcher(urlString)
@@ -103,23 +132,27 @@ test('getJsonCached should use cache when useCache is true', async () => {
   const mockData = { name: 'test', value: 123 }
   const mockCache = createMockCache()
   setupMockStorageBuckets(mockCache)
-  let fetchCallCount = 0
+  let getCallCount = 0
 
   globalThis.fetch = mockFetch({
     getResponse: () => {
-      fetchCallCount++
-      return Response.json(mockData)
+      getCallCount++
+      return Response.json(mockData, {
+        headers: {
+          etag: '"test-etag"',
+        },
+      })
     },
   })
 
   const cacheName = `test-cache-${Date.now()}-${Math.random()}`
   const result1 = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName)
   expect(result1).toEqual(mockData)
-  expect(fetchCallCount).toBe(1)
+  expect(getCallCount).toBe(1)
 
   const result2 = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName)
   expect(result2).toEqual(mockData)
-  expect(fetchCallCount).toBe(1)
+  expect(getCallCount).toBe(1)
 })
 
 test('getJsonCached should throw VError when fetch fails and useCache is false', async () => {
@@ -150,22 +183,30 @@ test('getJsonCached should cache different URLs separately', async () => {
   const mockData2 = { name: 'test2', value: 2 }
   const mockCache = createMockCache()
   setupMockStorageBuckets(mockCache)
-  let getJsonCallCount = 0
+  let getCallCount = 0
 
   globalThis.fetch = mockFetch({
     urlMatcher: (url: string) => {
       if (url.includes('api1')) {
         return {
           getResponse: (): Response => {
-            getJsonCallCount++
-            return Response.json(mockData1)
+            getCallCount++
+            return Response.json(mockData1, {
+              headers: {
+                etag: '"test-etag-1"',
+              },
+            })
           },
         }
       }
       return {
         getResponse: (): Response => {
-          getJsonCallCount++
-          return Response.json(mockData2)
+          getCallCount++
+          return Response.json(mockData2, {
+            headers: {
+              etag: '"test-etag-2"',
+            },
+          })
         },
       }
     },
@@ -174,24 +215,24 @@ test('getJsonCached should cache different URLs separately', async () => {
   const cacheName = `test-cache-${Date.now()}-${Math.random()}`
   const result1 = await GetJsonCached.getJsonCached('https://example.com/api1', true, 'test-bucket', cacheName)
   expect(result1).toEqual(mockData1)
-  expect(getJsonCallCount).toBe(1)
+  expect(getCallCount).toBe(1)
 
   const result2 = await GetJsonCached.getJsonCached('https://example.com/api2', true, 'test-bucket', cacheName)
   expect(result2).toEqual(mockData2)
-  expect(getJsonCallCount).toBe(2)
+  expect(getCallCount).toBe(2)
 
   const result1Cached = await GetJsonCached.getJsonCached('https://example.com/api1', true, 'test-bucket', cacheName)
   expect(result1Cached).toEqual(mockData1)
-  expect(getJsonCallCount).toBe(2)
+  expect(getCallCount).toBe(2)
 
   const result2Cached = await GetJsonCached.getJsonCached('https://example.com/api2', true, 'test-bucket', cacheName)
   expect(result2Cached).toEqual(mockData2)
-  expect(getJsonCallCount).toBe(2)
+  expect(getCallCount).toBe(2)
 })
 
 test('getJsonCached should fallback to getJson when cache operations fail', async () => {
   const mockData = { name: 'test', value: 999 }
-  let getJsonCallCount = 0
+  let getCallCount = 0
 
   const mockCache: Cache = {
     async match() {
@@ -216,39 +257,47 @@ test('getJsonCached should fallback to getJson when cache operations fail', asyn
 
   globalThis.fetch = mockFetch({
     getResponse: () => {
-      getJsonCallCount++
-      return Response.json(mockData)
+      getCallCount++
+      return Response.json(mockData, {
+        headers: {
+          etag: '"test-etag"',
+        },
+      })
     },
   })
 
   const result = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache')
   expect(result).toEqual(mockData)
-  expect(getJsonCallCount).toBe(1)
+  expect(getCallCount).toBe(1)
 })
 
-test('getJsonCached should fallback to getJson when fetch response is not ok', async () => {
+test('getJsonCached should fallback to getJson when HEAD response is not ok', async () => {
   const mockData = { name: 'test', value: 111 }
-  let getJsonCallCount = 0
+  let getCallCount = 0
   const mockCache = createMockCache()
   setupMockStorageBuckets(mockCache)
 
   globalThis.fetch = mockFetch({
     getResponse: () => {
-      getJsonCallCount++
-      if (getJsonCallCount === 1) {
+      getCallCount++
+      return Response.json(mockData)
+    },
+    onCall: (input, init) => {
+      const method = init?.method || 'GET'
+      if (method === 'HEAD') {
         return new Response(null, {
           status: 404,
           statusText: 'Not Found',
         })
       }
-      return Response.json(mockData)
+      return undefined
     },
   })
 
   const cacheName = `test-cache-${Date.now()}-${Math.random()}`
   const result = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName)
   expect(result).toEqual(mockData)
-  expect(getJsonCallCount).toBe(2)
+  expect(getCallCount).toBe(1)
 })
 
 test('getJsonCached should handle getJson error when fetch fails', async () => {
