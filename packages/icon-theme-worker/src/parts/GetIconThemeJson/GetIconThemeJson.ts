@@ -10,11 +10,17 @@ import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 // TODO not sure whether this worker should query all extensions
 // or the extension host worker or another worker
 
-export const loadIconThemeJson = async (extensions: readonly any[], iconThemeId: string, assetDir: string, platform: number): Promise<any> => {
+export const loadIconThemeJson = async (
+  extensions: readonly any[],
+  iconThemeId: string,
+  assetDir: string,
+  platform: number,
+  useCache: boolean,
+): Promise<any> => {
   if (!iconThemeId) {
     return ''
   }
-  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform)
+  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform, useCache)
   IconThemeState.setTheme(json)
   return json
 }
