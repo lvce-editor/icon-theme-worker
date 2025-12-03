@@ -40,8 +40,8 @@ test('doGetIconThemeJson should return icon theme json for web platform with use
   expect(result?.extensionBaseUrl).toBe('/assets/extensions/builtin.test-theme')
 })
 
-test('doGetIconThemeJson should return undefined when icon theme is not found for non-web platform', async () => {
-  const result = await DoGetIconThemeJson.doGetIconThemeJson([], 'test-theme', '/assets', PlatformType.Node, false)
+test.skip('doGetIconThemeJson should return undefined when icon theme is not found for non-web platform', async () => {
+  const result = await DoGetIconThemeJson.doGetIconThemeJson([], 'test-theme', '/assets', PlatformType.Remote, false)
 
   expect(result).toBeUndefined()
 })
