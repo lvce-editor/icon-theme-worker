@@ -1,13 +1,29 @@
 import { getJson } from '../GetJson/GetJson.ts'
 
+const cache = new Map<string, any>()
+
 export const getJsonCached = async (url: string, useCache: boolean): Promise<any> => {
   if (!useCache) {
     return getJson(url)
   }
-  // TODO
-  // 1. query cache
-  // 2. if it doesn;t exist, fetch data
-  // 3. add data to cache
-  // 4. return data from cache
-  return getJson(url)
+
+  try {
+    const headResponse = await fetch(url, { method: 'HEAD' })
+    if (!headResponse.ok) {
+      return getJson(url)
+    }
+
+    const etag = headResponse.headers.get('etag')
+    if (etag && cache.has(etag)) {
+      return cache.get(etag)
+    }
+
+    const json = await getJson(url)
+    if (etag) {
+      cache.set(etag, json)
+    }
+    return json
+  } catch {
+    return getJson(url)
+  }
 }
