@@ -15,12 +15,17 @@ const getCacheHash = (etag: string): string => {
   return etag
 }
 
+const getPrefix = (locationProtocol: string): string => {
+  if (supportsNormalCacheKey(locationProtocol)) {
+    return ``
+  }
+  // workaround for electron bug
+  return `https://-`
+}
+
 export const getIconThemeCacheKey = async (etag: string): Promise<string> => {
   const locationProtocol = location.protocol
   const hash = getCacheHash(etag)
-  if (supportsNormalCacheKey(locationProtocol)) {
-    return `/icon-themes/${hash}`
-  }
-  // workaround for electron bug
-  return `https://-/icon-themes/${hash}`
+  const prefix = getPrefix(locationProtocol)
+  return `${prefix}/icon-themes/${hash}`
 }
