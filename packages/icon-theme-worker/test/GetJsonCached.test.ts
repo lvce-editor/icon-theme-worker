@@ -40,11 +40,17 @@ const createMockCache = (): Cache => {
 
 const setupMockStorageBuckets = (mockCache: Cache): void => {
   ;(globalThis.navigator as any).storageBuckets = {
-    async open() {
+    async open(): Promise<{
+      caches(): Promise<{
+        open(): Promise<Cache>
+      }>
+    }> {
       return {
-        async caches() {
+        async caches(): Promise<{
+          open(): Promise<Cache>
+        }> {
           return {
-            async open() {
+            async open(): Promise<Cache> {
               return mockCache
             },
           }
