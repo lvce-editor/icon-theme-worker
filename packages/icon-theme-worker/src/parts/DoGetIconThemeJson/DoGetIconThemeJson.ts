@@ -4,16 +4,18 @@ import * as FindMatchingIconThemeExtension from '../FindMatchingIconThemeExtensi
 import { getIconThemeJsonUrl } from '../GetIconThemeJsonUrl/GetIconThemeJsonUrl.ts'
 import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
 import * as GetJson from '../GetJson/GetJson.ts'
+import { getJsonCached } from '../GetJsonCached/GetJsonCached.ts'
 
 export const doGetIconThemeJson = async (
   extensions: readonly any[],
   iconThemeId: string,
   assetDir: string,
   platform: number,
+  useCache: boolean,
 ): Promise<LoadedIconTheme | undefined> => {
   if (platform === PlatformType.Web) {
     const url = GetIconThemeUrl.getIconThemeUrl(assetDir, iconThemeId)
-    const json = await GetJson.getJson(url)
+    const json = await getJsonCached(url, useCache)
     return {
       extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
       extensionRemoteUri: `${assetDir}/extensions/builtin.${iconThemeId}`,
@@ -27,7 +29,7 @@ export const doGetIconThemeJson = async (
     return undefined
   }
   const iconThemeUrl = getIconThemeJsonUrl(iconTheme)
-  const iconThemeJson = await GetJson.getJson(iconThemeUrl)
+  const iconThemeJson = await getJsonCached(iconThemeUrl, useCache)
   return {
     extensionPath: iconTheme.extensionPath,
     extensionRemoteUri: iconTheme.extensionRemoteUri || '',
