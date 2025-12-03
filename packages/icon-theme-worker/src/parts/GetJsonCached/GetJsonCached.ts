@@ -1,28 +1,28 @@
+import { getCache } from '../GetCache/GetCache.ts'
 import { getJson } from '../GetJson/GetJson.ts'
+import { putInCache } from '../PutInCache/PutInCache.ts'
 
-const cache = new Map<string, any>()
-
-export const getJsonCached = async (url: string, useCache: boolean): Promise<any> => {
+export const getJsonCached = async (url: string, useCache: boolean, bucketName: string, cacheName: string): Promise<any> => {
   if (!useCache) {
     return getJson(url)
   }
 
   try {
-    const headResponse = await fetch(url, { method: 'HEAD' })
-    if (!headResponse.ok) {
-      return getJson(url)
+    const cache = await getCache(bucketName, cacheName)
+    const cachedResponse = await cache.match(url)
+
+    if (cachedResponse) {
+      const clonedResponse = cachedResponse.clone()
+      return await clonedResponse.json()
     }
 
-    const etag = headResponse.headers.get('etag')
-    if (etag && cache.has(etag)) {
-      return cache.get(etag)
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(response.statusText)
     }
 
-    const json = await getJson(url)
-    if (etag) {
-      cache.set(etag, json)
-    }
-    return json
+    await putInCache(url, response.clone(), cache)
+    return await response.json()
   } catch {
     return getJson(url)
   }

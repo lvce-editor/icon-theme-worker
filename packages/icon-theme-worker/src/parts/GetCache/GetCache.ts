@@ -11,3 +11,9 @@ export const getCache = (bucketName: string, cacheName: string): Promise<ICache>
   }
   return cachedCaches[cacheName]
 }
+
+export const resetCache = (): void => {
+  for (const key in cachedCaches) {
+    delete cachedCaches[key]
+  }
+}
