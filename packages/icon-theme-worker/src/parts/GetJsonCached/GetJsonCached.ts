@@ -2,12 +2,7 @@ import { getCache } from '../GetCache/GetCache.ts'
 import { getJson } from '../GetJson/GetJson.ts'
 import { putInCache } from '../PutInCache/PutInCache.ts'
 
-export const getJsonCached = async (
-  url: string,
-  useCache: boolean,
-  bucketName: string,
-  cacheName: string,
-): Promise<any> => {
+export const getJsonCached = async (url: string, useCache: boolean, bucketName: string, cacheName: string): Promise<any> => {
   if (!useCache) {
     return getJson(url)
   }
