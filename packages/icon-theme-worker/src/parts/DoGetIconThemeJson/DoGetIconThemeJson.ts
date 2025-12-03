@@ -3,7 +3,6 @@ import type { LoadedIconTheme } from '../LoadedIconTheme/LoadedIconTheme.ts'
 import * as FindMatchingIconThemeExtension from '../FindMatchingIconThemeExtension/FindMatchingIconThemeExtension.ts'
 import { getIconThemeJsonUrl } from '../GetIconThemeJsonUrl/GetIconThemeJsonUrl.ts'
 import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
-import * as GetJson from '../GetJson/GetJson.ts'
 import { getJsonCached } from '../GetJsonCached/GetJsonCached.ts'
 
 export const doGetIconThemeJson = async (
