@@ -59,10 +59,7 @@ const mockFetch = (options: MockFetchOptions): typeof globalThis.fetch => {
 test('getJsonCached should call getJson when useCache is false', async () => {
   const mockData = { name: 'test', value: 123 }
   globalThis.fetch = mockFetch({
-    getResponse: new Response(JSON.stringify(mockData), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }),
+    getResponse: Response.json(mockData),
   })
 
   const result = await GetJsonCached.getJsonCached('https://example.com/api', false)
@@ -73,10 +70,7 @@ test('getJsonCached should call getJson when useCache is false', async () => {
 test('getJsonCached should call getJson when useCache is true', async () => {
   const mockData = { name: 'test', value: 123 }
   globalThis.fetch = mockFetch({
-    getResponse: new Response(JSON.stringify(mockData), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }),
+    getResponse: Response.json(mockData),
   })
 
   const result = await GetJsonCached.getJsonCached('https://example.com/api', true)
@@ -114,10 +108,7 @@ test('getJsonCached should use cached data when etag matches', async () => {
       status: 200,
       headers: { etag },
     }),
-    getResponse: new Response(JSON.stringify(mockData), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    }),
+    getResponse: Response.json(mockData),
     onCall: () => {
       fetchCallCount++
     },
@@ -144,10 +135,7 @@ test('getJsonCached should fetch and cache data when etag exists but cache miss'
     }),
     getResponse: () => {
       getJsonCallCount++
-      return new Response(JSON.stringify(mockData), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return Response.json(mockData)
     },
   })
 
@@ -167,10 +155,7 @@ test('getJsonCached should fetch but not cache when no etag', async () => {
     }),
     getResponse: () => {
       getJsonCallCount++
-      return new Response(JSON.stringify(mockData), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return Response.json(mockData)
     },
   })
 
@@ -193,10 +178,7 @@ test('getJsonCached should fallback to getJson when HEAD request fails', async (
     },
     getResponse: () => {
       getJsonCallCount++
-      return new Response(JSON.stringify(mockData), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return Response.json(mockData)
     },
   })
 
@@ -217,10 +199,7 @@ test('getJsonCached should fallback to getJson when HEAD response is not ok', as
     }),
     getResponse: () => {
       getJsonCallCount++
-      return new Response(JSON.stringify(mockData), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return Response.json(mockData)
     },
   })
 
@@ -246,10 +225,7 @@ test('getJsonCached should cache different etags separately', async () => {
           }),
           getResponse: (): Response => {
             getJsonCallCount++
-            return new Response(JSON.stringify(mockData1), {
-              status: 200,
-              headers: { 'Content-Type': 'application/json' },
-            })
+            return Response.json(mockData1)
           },
         }
       }
@@ -260,10 +236,7 @@ test('getJsonCached should cache different etags separately', async () => {
         }),
         getResponse: (): Response => {
           getJsonCallCount++
-          return new Response(JSON.stringify(mockData2), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          })
+          return Response.json(mockData2)
         },
       }
     },
@@ -297,10 +270,7 @@ test('getJsonCached should handle empty etag string', async () => {
     }),
     getResponse: () => {
       getJsonCallCount++
-      return new Response(JSON.stringify(mockData), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
+      return Response.json(mockData)
     },
   })
 
