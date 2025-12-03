@@ -1,8 +1,10 @@
+import type { Test } from '@lvce-editor/test-with-playwright'
+
 export const name = 'icon-theme.change'
 
 export const skip = true
 
-export const test = async ({ FileSystem, Workspace, Extension, IconTheme, Locator, expect, BaseUrl }) => {
+export const test: Test = async ({ FileSystem, Workspace, Extension, IconTheme, Locator, expect, BaseUrl }) => {
   // arrange
   const tmpDir = await FileSystem.getTmpDir()
   await FileSystem.writeFile(`${tmpDir}/test.xyz`, 'test')
