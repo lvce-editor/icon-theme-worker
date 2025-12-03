@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import { test, expect, beforeEach } from '@jest/globals'
 import { VError } from '@lvce-editor/verror'
-
-const GetJsonCached = await import('../src/parts/GetJsonCached/GetJsonCached.ts')
+import * as GetCache from '../src/parts/GetCache/GetCache.ts'
+import * as GetJsonCached from '../src/parts/GetJsonCached/GetJsonCached.ts'
 
 const originalFetch = globalThis.fetch
 const originalStorageBuckets = (globalThis.navigator as any).storageBuckets
@@ -11,6 +11,7 @@ const originalStorageBuckets = (globalThis.navigator as any).storageBuckets
 beforeEach(() => {
   globalThis.fetch = originalFetch
   ;(globalThis.navigator as any).storageBuckets = originalStorageBuckets
+  GetCache.resetCache()
 })
 
 const createMockCache = (): Cache => {
@@ -25,7 +26,7 @@ const createMockCache = (): Cache => {
     },
     async put(url: RequestInfo | URL, response: Response): Promise<void> {
       const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url
-      cache.set(urlString, response.clone())
+      cache.set(urlString, response)
     },
     async delete(): Promise<boolean> {
       return false
@@ -41,19 +42,15 @@ const createMockCache = (): Cache => {
 const setupMockStorageBuckets = (mockCache: Cache): void => {
   ;(globalThis.navigator as any).storageBuckets = {
     async open(): Promise<{
-      caches(): Promise<{
+      caches: {
         open(): Promise<Cache>
-      }>
+      }
     }> {
       return {
-        async caches(): Promise<{
-          open(): Promise<Cache>
-        }> {
-          return {
-            async open(): Promise<Cache> {
-              return mockCache
-            },
-          }
+        caches: {
+          async open(): Promise<Cache> {
+            return mockCache
+          },
         },
       }
     },
