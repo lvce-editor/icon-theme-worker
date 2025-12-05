@@ -19,6 +19,14 @@ beforeEach(() => {
 const createMockCache = (): Cache => {
   const cache = new Map<string, Response>()
   return {
+    async add(): Promise<void> {},
+    async addAll(): Promise<void> {},
+    async delete(): Promise<boolean> {
+      return false
+    },
+    async keys(): Promise<ReadonlyArray<Request>> {
+      return []
+    },
     async match(url: RequestInfo | URL): Promise<Response | undefined> {
       const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url
       return cache.get(urlString)
@@ -30,14 +38,6 @@ const createMockCache = (): Cache => {
       const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url
       cache.set(urlString, response)
     },
-    async delete(): Promise<boolean> {
-      return false
-    },
-    async keys(): Promise<ReadonlyArray<Request>> {
-      return []
-    },
-    async addAll(): Promise<void> {},
-    async add(): Promise<void> {},
   } as unknown as Cache
 }
 
@@ -83,19 +83,19 @@ const mockFetch = (options: MockFetchOptions): typeof globalThis.fetch => {
         if (matched && matched.getResponse) {
           const etag = urlString.includes('api1') ? '"test-etag-1"' : urlString.includes('api2') ? '"test-etag-2"' : '"test-etag"'
           return new Response(null, {
-            status: 200,
             headers: {
               etag,
             },
+            status: 200,
           })
         }
       }
       if (options.getResponse) {
         return new Response(null, {
-          status: 200,
           headers: {
             etag: '"test-etag"',
           },
+          status: 200,
         })
       }
     }
@@ -235,6 +235,14 @@ test('getJsonCached should fallback to getJson when cache operations fail', asyn
   let getCallCount = 0
 
   const mockCache: Cache = {
+    async add(): Promise<void> {},
+    async addAll(): Promise<void> {},
+    async delete(): Promise<boolean> {
+      return false
+    },
+    async keys(): Promise<ReadonlyArray<Request>> {
+      return []
+    },
     async match() {
       throw new Error('Cache match failed')
     },
@@ -244,14 +252,6 @@ test('getJsonCached should fallback to getJson when cache operations fail', asyn
     async put() {
       throw new Error('Cache put failed')
     },
-    async delete(): Promise<boolean> {
-      return false
-    },
-    async keys(): Promise<ReadonlyArray<Request>> {
-      return []
-    },
-    async addAll(): Promise<void> {},
-    async add(): Promise<void> {},
   } as unknown as Cache
   setupMockStorageBuckets(mockCache)
 

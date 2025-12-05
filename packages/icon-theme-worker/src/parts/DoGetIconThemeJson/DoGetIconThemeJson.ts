@@ -19,8 +19,8 @@ export const doGetIconThemeJson = async (
     const json = await getJsonCached(url, useCache, bucketName, cacheName, iconThemeId)
     return {
       extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
-      extensionRemoteUri: `${assetDir}/extensions/builtin.${iconThemeId}`,
       extensionPath: `${assetDir}/extensions/builtin.${iconThemeId}`,
+      extensionRemoteUri: `${assetDir}/extensions/builtin.${iconThemeId}`,
       extensionUri: `${assetDir}/extensions/builtin.${iconThemeId}`,
       json,
     }
@@ -32,10 +32,10 @@ export const doGetIconThemeJson = async (
   const iconThemeUrl = getIconThemeJsonUrl(iconTheme)
   const iconThemeJson = await getJsonCached(iconThemeUrl, useCache, bucketName, cacheName, iconThemeId)
   return {
+    extensionBaseUrl: iconTheme.extensionRemoteUri || '',
     extensionPath: iconTheme.extensionPath,
     extensionRemoteUri: iconTheme.extensionRemoteUri || '',
     extensionUri: iconTheme.extensionUri || '',
-    extensionBaseUrl: iconTheme.extensionRemoteUri || '',
     json: iconThemeJson,
   }
 }

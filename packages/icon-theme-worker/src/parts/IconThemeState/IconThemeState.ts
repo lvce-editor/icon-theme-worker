@@ -2,15 +2,15 @@ import type { LoadedIconTheme } from '../LoadedIconTheme/LoadedIconTheme.ts'
 import * as InitialIconTheme from '../InitialIconTheme/InitialIconTheme.ts'
 
 const state = {
-  seenFiles: [],
-  seenFolders: [],
+  extensionBaseUrl: '',
+  extensionPath: '',
   hasWarned: [],
   /**
    * @type{any}
    */
   iconTheme: InitialIconTheme.initialIconTheme,
-  extensionPath: '',
-  extensionBaseUrl: '',
+  seenFiles: [],
+  seenFolders: [],
 }
 
 const hasHttpExtensionPath = (iconTheme: any): boolean => {
