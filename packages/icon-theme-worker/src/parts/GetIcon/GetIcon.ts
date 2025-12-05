@@ -88,7 +88,7 @@ export const getFolderNameIcon = (folderName: string): string => {
     return ''
   }
   const baseUrl = IconThemeState.getExtensionBaseUrl()
-  const { iconDefinitions, folderNames } = iconTheme
+  const { folderNames, iconDefinitions } = iconTheme
   if (folderNames) {
     const folderNameLower = folderName.toLowerCase()
     const folderIcon = folderNames[folderNameLower]
@@ -127,19 +127,19 @@ export const getIcon = (dirent: Dirent): string => {
   const baseUrl = IconThemeState.getExtensionBaseUrl()
 
   switch (dirent.type) {
-    case DirentType.File:
-    case DirentType.SymLinkFile:
-      return getFileIcon(dirent)
+    case DirentType.BlockDevice:
+    case DirentType.CharacterDevice:
+    case DirentType.Socket:
+    case DirentType.Symlink:
+      return GetAbsoluteIconPath.getAbsoluteIconPath(IconThemeState.getIconTheme(), DefaultIcon.File, baseUrl)
     case DirentType.Directory:
     case DirentType.SymLinkFolder:
       return getFolderIcon(dirent)
     case DirentType.DirectoryExpanded:
       return getFolderIconExpanded(dirent)
-    case DirentType.Symlink:
-    case DirentType.CharacterDevice:
-    case DirentType.BlockDevice:
-    case DirentType.Socket:
-      return GetAbsoluteIconPath.getAbsoluteIconPath(IconThemeState.getIconTheme(), DefaultIcon.File, baseUrl)
+    case DirentType.File:
+    case DirentType.SymLinkFile:
+      return getFileIcon(dirent)
     default:
       Logger.warn(`unsupported type ${dirent.type}`)
       return DefaultIcon.None

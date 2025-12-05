@@ -12,8 +12,8 @@ test('doGetIconThemeJson should return icon theme json for web platform with use
   const mockJson = { iconDefinitions: {} }
   globalThis.fetch = async (): Promise<Response> => {
     return {
-      ok: true,
       json: async () => mockJson,
+      ok: true,
     } as unknown as Response
   }
 
@@ -28,8 +28,8 @@ test('doGetIconThemeJson should return icon theme json for web platform with use
   const mockJson = { iconDefinitions: {} }
   globalThis.fetch = async (): Promise<Response> => {
     return {
-      ok: true,
       json: async () => mockJson,
+      ok: true,
     } as unknown as Response
   }
 

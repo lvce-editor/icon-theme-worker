@@ -3,7 +3,7 @@ import { mockWorkerGlobalRpc } from '@lvce-editor/rpc'
 import * as Listen from '../src/parts/Listen/Listen.ts'
 
 test('listen', async () => {
-  const { start, dispose } = mockWorkerGlobalRpc()
+  const { dispose, start } = mockWorkerGlobalRpc()
   const listenPromise = Listen.listen()
   start()
   await listenPromise

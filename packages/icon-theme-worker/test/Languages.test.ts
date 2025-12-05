@@ -9,15 +9,15 @@ beforeEach(() => {
 test('addLanguages should add languages with extensions to state', () => {
   const languages: readonly Language[] = [
     {
-      id: 'javascript',
-      extensions: ['.js', '.jsx'],
       extensionPath: '',
+      extensions: ['.js', '.jsx'],
+      id: 'javascript',
       tokenize: '',
     },
     {
-      id: 'typescript',
-      extensions: ['.ts', '.tsx'],
       extensionPath: '',
+      extensions: ['.ts', '.tsx'],
+      id: 'typescript',
       tokenize: '',
     },
   ]
@@ -33,9 +33,9 @@ test('addLanguages should add languages with extensions to state', () => {
 test('addLanguages should handle languages without extensions', () => {
   const languages: readonly Language[] = [
     {
-      id: 'plaintext',
-      extensions: undefined,
       extensionPath: '',
+      extensions: undefined,
+      id: 'plaintext',
       tokenize: '',
     },
   ]
@@ -49,9 +49,9 @@ test('addLanguages should handle languages without extensions', () => {
 test('addLanguages should handle empty extensions array', () => {
   const languages: readonly Language[] = [
     {
-      id: 'plaintext',
-      extensions: [],
       extensionPath: '',
+      extensions: [],
+      id: 'plaintext',
       tokenize: '',
     },
   ]
@@ -80,9 +80,9 @@ test('getLanguageId should handle empty filename', () => {
 test('getLanguageId should be case insensitive', () => {
   const languages: readonly Language[] = [
     {
-      id: 'javascript',
-      extensions: ['.js'],
       extensionPath: '',
+      extensions: ['.js'],
+      id: 'javascript',
       tokenize: '',
     },
   ]
@@ -97,15 +97,15 @@ test('getLanguageId should be case insensitive', () => {
 test('getLanguageId should handle multiple extensions in filename', () => {
   const languages: readonly Language[] = [
     {
-      id: 'typescript',
-      extensions: ['.ts'],
       extensionPath: '',
+      extensions: ['.ts'],
+      id: 'typescript',
       tokenize: '',
     },
     {
-      id: 'javascript',
-      extensions: ['.js'],
       extensionPath: '',
+      extensions: ['.js'],
+      id: 'javascript',
       tokenize: '',
     },
   ]
@@ -120,15 +120,15 @@ test('getLanguageId should handle multiple extensions in filename', () => {
 test('getLanguageId should handle complex filenames with multiple dots', () => {
   const languages: readonly Language[] = [
     {
-      id: 'json',
-      extensions: ['.json'],
       extensionPath: '',
+      extensions: ['.json'],
+      id: 'json',
       tokenize: '',
     },
     {
-      id: 'typescript',
-      extensions: ['.ts'],
       extensionPath: '',
+      extensions: ['.ts'],
+      id: 'typescript',
       tokenize: '',
     },
   ]
@@ -143,18 +143,18 @@ test('getLanguageId should handle complex filenames with multiple dots', () => {
 test('addLanguages should overwrite existing language mappings', () => {
   const firstLanguages: readonly Language[] = [
     {
-      id: 'javascript',
-      extensions: ['.js'],
       extensionPath: '',
+      extensions: ['.js'],
+      id: 'javascript',
       tokenize: '',
     },
   ]
 
   const secondLanguages: readonly Language[] = [
     {
-      id: 'typescript',
-      extensions: ['.js'], // Same extension, different language
       extensionPath: '',
+      extensions: ['.js'], // Same extension, different language
+      id: 'typescript',
       tokenize: '',
     },
   ]
