@@ -23,9 +23,9 @@ const getPrefix = (locationProtocol: string): string => {
   return `https://-`
 }
 
-export const getIconThemeCacheKey = async (etag: string, iconThemeId: string): Promise<string> => {
+export const getIconThemeCacheKey = async (etag: string, iconThemeId: string, commit: string): Promise<string> => {
   const locationProtocol = location.protocol
   const hash = getCacheHash(etag)
   const prefix = getPrefix(locationProtocol)
-  return `${prefix}/icon-themes/${iconThemeId}/${hash}`
+  return `${prefix}/icon-themes/${iconThemeId}/${commit}/${hash}`
 }

@@ -16,11 +16,12 @@ export const loadIconThemeJson = async (
   assetDir: string,
   platform: number,
   useCache: boolean,
+  commit: string,
 ): Promise<any> => {
   if (!iconThemeId) {
     return ''
   }
-  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform, useCache)
+  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform, useCache, commit)
   IconThemeState.setTheme(json)
   return json
 }

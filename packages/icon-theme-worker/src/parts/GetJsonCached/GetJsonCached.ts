@@ -3,7 +3,14 @@ import { getIconThemeCacheKey } from '../GetIconThemeCacheKey/GetIconThemeCacheK
 import { getJson } from '../GetJson/GetJson.ts'
 import { putInCache } from '../PutInCache/PutInCache.ts'
 
-export const getJsonCached = async (url: string, useCache: boolean, bucketName: string, cacheName: string, iconThemeId = '-'): Promise<any> => {
+export const getJsonCached = async (
+  url: string,
+  useCache: boolean,
+  bucketName: string,
+  cacheName: string,
+  iconThemeId = '-',
+  commit = '',
+): Promise<any> => {
   if (!useCache) {
     return getJson(url)
   }
@@ -20,7 +27,7 @@ export const getJsonCached = async (url: string, useCache: boolean, bucketName: 
     }
 
     const cache = await getCache(bucketName, cacheName)
-    const cacheKey = await getIconThemeCacheKey(etag, iconThemeId)
+    const cacheKey = await getIconThemeCacheKey(etag, iconThemeId, commit)
     const cachedResponse = await cache.match(cacheKey)
 
     if (cachedResponse) {
