@@ -123,7 +123,9 @@ test('getJsonCached should call getJson when useCache is false', async () => {
     getResponse: Response.json(mockData),
   })
 
-  const result = await GetJsonCached.getJsonCached('https://example.com/api', false, 'test-bucket', 'test-cache')
+  const locationProtocol = 'https:'
+
+  const result = await GetJsonCached.getJsonCached('https://example.com/api', false, 'test-bucket', 'test-cache', locationProtocol)
 
   expect(result).toEqual(mockData)
 })

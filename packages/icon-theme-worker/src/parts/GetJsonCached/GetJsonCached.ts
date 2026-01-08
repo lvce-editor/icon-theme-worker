@@ -8,6 +8,7 @@ export const getJsonCached = async (
   useCache: boolean,
   bucketName: string,
   cacheName: string,
+  locationProtocol:string,
   iconThemeId = '-',
   commit = '',
 ): Promise<any> => {
@@ -27,7 +28,7 @@ export const getJsonCached = async (
     }
 
     const cache = await getCache(bucketName, cacheName)
-    const cacheKey = await getIconThemeCacheKey(etag, iconThemeId, commit)
+    const cacheKey = await getIconThemeCacheKey(etag, iconThemeId, commit, locationProtocol)
     const cachedResponse = await cache.match(cacheKey)
 
     if (cachedResponse) {
