@@ -3,9 +3,11 @@ import { PlatformType } from '@lvce-editor/constants'
 import * as DoGetIconThemeJson from '../src/parts/DoGetIconThemeJson/DoGetIconThemeJson.ts'
 
 const originalFetch = globalThis.fetch
+const originalLocation = (globalThis as any).location
 
 beforeEach(() => {
   globalThis.fetch = originalFetch
+  ;(globalThis as any).location = originalLocation || { protocol: 'https:' }
 })
 
 test('doGetIconThemeJson should return icon theme json for web platform with useCache false', async () => {
