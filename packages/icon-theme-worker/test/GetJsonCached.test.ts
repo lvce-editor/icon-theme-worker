@@ -148,11 +148,11 @@ test('getJsonCached should use cache when useCache is true', async () => {
   })
 
   const cacheName = `test-cache-${Date.now()}-${Math.random()}`
-  const result1 = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName)
+  const result1 = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName, 'https:')
   expect(result1).toEqual(mockData)
   expect(getCallCount).toBe(1)
 
-  const result2 = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName)
+  const result2 = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName, 'https:')
   expect(result2).toEqual(mockData)
   expect(getCallCount).toBe(1)
 })
@@ -164,7 +164,7 @@ test('getJsonCached should throw VError when fetch fails and useCache is false',
     },
   })
 
-  await expect(GetJsonCached.getJsonCached('https://example.com/api', false, 'test-bucket', 'test-cache')).rejects.toThrow(VError)
+  await expect(GetJsonCached.getJsonCached('https://example.com/api', false, 'test-bucket', 'test-cache', 'https:')).rejects.toThrow(VError)
 })
 
 test('getJsonCached should throw VError when fetch fails and useCache is true', async () => {
@@ -177,7 +177,7 @@ test('getJsonCached should throw VError when fetch fails and useCache is true', 
     },
   })
 
-  await expect(GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache')).rejects.toThrow(VError)
+  await expect(GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache', 'https:')).rejects.toThrow(VError)
 })
 
 test('getJsonCached should cache different URLs separately', async () => {
@@ -215,19 +215,19 @@ test('getJsonCached should cache different URLs separately', async () => {
   })
 
   const cacheName = `test-cache-${Date.now()}-${Math.random()}`
-  const result1 = await GetJsonCached.getJsonCached('https://example.com/api1', true, 'test-bucket', cacheName)
+  const result1 = await GetJsonCached.getJsonCached('https://example.com/api1', true, 'test-bucket', cacheName, 'https:')
   expect(result1).toEqual(mockData1)
   expect(getCallCount).toBe(1)
 
-  const result2 = await GetJsonCached.getJsonCached('https://example.com/api2', true, 'test-bucket', cacheName)
+  const result2 = await GetJsonCached.getJsonCached('https://example.com/api2', true, 'test-bucket', cacheName, 'https:')
   expect(result2).toEqual(mockData2)
   expect(getCallCount).toBe(2)
 
-  const result1Cached = await GetJsonCached.getJsonCached('https://example.com/api1', true, 'test-bucket', cacheName)
+  const result1Cached = await GetJsonCached.getJsonCached('https://example.com/api1', true, 'test-bucket', cacheName, 'https:')
   expect(result1Cached).toEqual(mockData1)
   expect(getCallCount).toBe(2)
 
-  const result2Cached = await GetJsonCached.getJsonCached('https://example.com/api2', true, 'test-bucket', cacheName)
+  const result2Cached = await GetJsonCached.getJsonCached('https://example.com/api2', true, 'test-bucket', cacheName, 'https:')
   expect(result2Cached).toEqual(mockData2)
   expect(getCallCount).toBe(2)
 })
@@ -268,7 +268,7 @@ test('getJsonCached should fallback to getJson when cache operations fail', asyn
     },
   })
 
-  const result = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache')
+  const result = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache', 'https:')
   expect(result).toEqual(mockData)
   expect(getCallCount).toBe(1)
 })
@@ -297,7 +297,7 @@ test('getJsonCached should fallback to getJson when HEAD response is not ok', as
   })
 
   const cacheName = `test-cache-${Date.now()}-${Math.random()}`
-  const result = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName)
+  const result = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName, 'https:')
   expect(result).toEqual(mockData)
   expect(getCallCount).toBe(1)
 })
@@ -312,5 +312,5 @@ test('getJsonCached should handle getJson error when fetch fails', async () => {
     },
   })
 
-  await expect(GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache')).rejects.toThrow(VError)
+  await expect(GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache', 'https:')).rejects.toThrow(VError)
 })
