@@ -32,8 +32,7 @@ export const getJsonCached = async (
     const cachedResponse = await cache.match(cacheKey)
 
     if (cachedResponse) {
-      const clonedResponse = cachedResponse.clone()
-      return await clonedResponse.json()
+      return await cachedResponse.json()
     }
 
     const response = await fetch(url)
