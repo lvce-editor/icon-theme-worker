@@ -8,7 +8,7 @@ export const getJsonCached = async (
   useCache: boolean,
   bucketName: string,
   cacheName: string,
-  locationProtocol:string,
+  locationProtocol: string,
   iconThemeId = '-',
   commit = '',
 ): Promise<any> => {
