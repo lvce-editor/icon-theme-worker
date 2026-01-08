@@ -10,7 +10,7 @@ export const getJsonCached = async (
   cacheName: string,
   locationProtocol: string,
   iconThemeId = '-',
-  commit = '',
+  commit = '-',
 ): Promise<any> => {
   if (!useCache) {
     return getJson(url)
