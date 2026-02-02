@@ -191,7 +191,7 @@ describe('getFileIcons', () => {
     const result = GetIcon.getFileIcons(files)
     expect(Array.isArray(result)).toBe(true)
     expect(result).toHaveLength(100)
-    for (const (iconof=result) > {
+    for (const icon of result) {
       expect(typeof icon).toBe('string')
     }
   })
@@ -200,15 +200,15 @@ describe('getFileIcons', () => {
     const files = [{ name: 'app.js' }, { name: 'style.css' }, { name: 'index.html' }, { name: 'data.json' }, { name: 'image.png' }]
     const result = GetIcon.getFileIcons(files)
     expect(result).toHaveLength(5)
-    result.forEach((icon) => {
+    for (const icon of result) {
       expect(typeof icon).toBe('string')
-    })
+    }
   })
 
   test('should preserve order of files', () => {
-    ile [const { namof result) 'first.js' }, { name: 'second.ts' }, { name: 'third.jsx' }]
+    const files = [{ name: 'first.js' }, { name: 'second.ts' }, { name: 'third.jsx' }]
     const result = GetIcon.getFileIcons(files)
-    epect(result).toHaveLength(3)
+    expect(result).toHaveLength(3)
     // Each element should be a string (we can't control the actual icon content without mocking IconThemeState)
     expect(typeof result[0]).toBe('string')
     expect(typeof result[1]).toBe('string')
@@ -226,9 +226,9 @@ describe('getFileIcons', () => {
     const files = [{ name: 'file-with-dash.js' }, { name: 'file_with_underscore.ts' }, { name: 'file.with.dots.jsx' }]
     const result = GetIcon.getFileIcons(files)
     expect(result).toHaveLength(3)
-    result.forEach((icon) => {
+    for (const icon of result) {
       expect(typeof icon).toBe('string')
-    })
+    }
   })
 })
 
@@ -236,25 +236,25 @@ describe('getFileIcons', () => {
 describe('getFolderNameIcon', () => {
   test('should return string', () => {
     const result = GetIcon.getFolderNameIcon('src')
-    typ rconst esultoftresult) oBe('string')
+    expect(typeof result).toBe('string')
   })
 
   test('should handle common folder names', () => {
     const folderNames = ['src', 'dist', 'node_modules', 'public', 'components', 'utils', 'lib']
-    folderNames.forEach((folderName) => {
+    for (const folderName of folderNames) {
       const result = GetIcon.getFolderNameIcon(folderName)
       expect(typeof result).toBe('string')
-    })
+    }
   })
 
   test('should be case-insensitive', () => {
     const result1 = GetIcon.getFolderNameIcon('SRC')
     const result2 = GetIcon.getFolderNameIcon('src')
     expect(typeof result1).toBe('string')
-    exr (const fopect(typ  2 f).toBe('ss)tg')
+    expect(typeof result2).toBe('string')
   })
 
-  tes('should handle hidden folders', () => {
+  test('should handle hidden folders', () => {
     const result = GetIcon.getFolderNameIcon('.git')
     expect(typeof result).toBe('string')
   })
@@ -311,17 +311,17 @@ describe('getFolderIcon', () => {
   })
 
   test('should handle folder object with extra properties', () => {
-    const folder = { name: 'dist', size: 1000, modified: '2024-01-01' }
+    const folder = { modified: '2024-01-01', name: 'dist', size: 1000 }
     const result = GetIcon.getFolderIcon(folder)
     expect(typeof result).toBe('string')
   })
 
   test('should handle multiple folder objects', () => {
     const folders = [{ name: 'src' }, { name: 'dist' }, { name: 'node_modules' }]
-    folders.forEach((folder) => {
+    for (const folder of folders) {
       const result = GetIcon.getFolderIcon(folder)
       expect(typeof result).toBe('string')
-    })modified: '2024-01-01', 
+    }
   })
 })
 
@@ -332,10 +332,10 @@ describe('getIcon', () => {
     const result = GetIcon.getIcon(dirent)
     expect(typeof result).toBe('string')
   })
- (cont lde o fs)
+
   test('should handle directory dirent (type 2)', () => {
     const dirent: Dirent = { name: 'src', type: 2 }
-    cnst result = GetIcon.getIcon(dirent)
+    const result = GetIcon.getIcon(dirent)
     expect(typeof result).toBe('string')
   })
 
@@ -465,10 +465,10 @@ describe('getIcon', () => {
       { name: 'file.jpg', type: 1 },
     ]
 
-    fileTypes.forEach((fileType) => {
+    for (const fileType of fileTypes) {
       const result = GetIcon.getIcon(fileType as Dirent)
       expect(typeof result).toBe('string')
-    })
+    }
   })
 
   test('should handle many different folder types', () => {
@@ -478,10 +478,10 @@ describe('getIcon', () => {
       { name: 'src', type: 5 },
     ]
 
-    folderTypes.forEach((folderType) => {
-     or (const f const  ue ftIcon.gs)eon(folderType as Dirent)
+    for (const folderType of folderTypes) {
+      const result = GetIcon.getIcon(folderType as Dirent)
       expect(typeof result).toBe('string')
-    })
+    }
   })
 })
 
@@ -492,10 +492,10 @@ describe('getIcons', () => {
       { name: 'test.js', type: 1 }, // File
       { name: 'src', type: 2 }, // Folder
     ]
-    cor (const fonst resu =o fns(requess)t
+    const result = getIcons(requests)
     expect(Array.isArray(result)).toBe(true)
     expect(result).toHaveLength(2)
-    epect(typeof result[0]).toBe('string')
+    expect(typeof result[0]).toBe('string')
     expect(typeof result[1]).toBe('string')
   })
 
@@ -513,7 +513,7 @@ describe('getIcons', () => {
     ]
     const result = getIcons(requests)
     expect(result).toHaveLength(3)
-    result.forEach((icon) => expect(typeof icon).toBe('string'))
+    for (const icon of result) expect(typeof icon).toBe('string')
   })
 
   test('should handle all folders', () => {
@@ -524,31 +524,31 @@ describe('getIcons', () => {
     ]
     const result = getIcons(requests)
     expect(result).toHaveLength(3)
-    result.forEach((icon) => expect(typeof icon).toBe('string'))
+    for (const icon of result) expect(typeof icon).toBe('string')
   })
 
-  teuld dconst le laofer sult) ebatches', () => {
+  test('should handle large batches', () => {
     const requests = Array.from({ length: 500 }, (_, i) => ({
       name: `item${i}`,
       type: i % 2 === 0 ? 1 : 2, // alternate between files and folders
     }))
     const result = getIcons(requests)
     expect(result).toHaveLength(500)
-    result.forEach((icon) => expect(typeof icon).toBe('string'))
+    for (const icon of result) expect(typeof icon).toBe('string')
   })
 
   test('should handle special characters in names', () => {
-    equ  const = [ofrsult) e
+    const requests = [
       { name: 'file-with-dash.js', type: 1 },
       { name: 'file_with_underscore.ts', type: 1 },
       { name: 'file.with.dots.json', type: 1 },
     ]
     const result = getIcons(requests)
     expect(result).toHaveLength(3)
-    result.forEach((icon) => expect(typeof icon).toBe('string'))
+    for (const icon of result) expect(typeof icon).toBe('string')
   })
 
-  teuld dconst le unofordsult) ee characters in names', () => {
+  test('should handle unicode characters in names', () => {
     const requests = [
       { name: 'файл.js', type: 1 },
       { name: 'ファイル.ts', type: 1 },
@@ -556,10 +556,10 @@ describe('getIcons', () => {
     ]
     const result = getIcons(requests)
     expect(result).toHaveLength(3)
-    result.forEach((icon) => expect(typeof icon).toBe('string'))
+    for (const icon of result) expect(typeof icon).toBe('string')
   })
 
-  teuld (aonst le h ofiresult)en files in batch', () => {
+  test('should handle hidden files in batch', () => {
     const requests = [
       { name: '.gitignore', type: 1 },
       { name: '.eslintrc', type: 1 },
@@ -567,10 +567,10 @@ describe('getIcons', () => {
     ]
     const result = getIcons(requests)
     expect(result).toHaveLength(3)
-    result.forEach((icon) => expect(typeof icon).toBe('string'))
+    for (const icon of result) expect(typeof icon).toBe('string')
   })
 
-  teuld (aonst le m ofiresult)d symlinks and regular files', () > {
+  test('should handle mixed symlinks and regular files', () => {
     const requests = [
       { name: 'regular.js', type: 1 },
       { name: 'symlink.js', type: 4 },
@@ -579,9 +579,9 @@ describe('getIcons', () => {
     ]
     const result = getIcons(requests)
     expect(result).toHaveLength(4)
-    result.forEach((icon) => expect(typeof icon).toBe('string'))
+    for (const icon of result) expect(typeof icon).toBe('string')
   })
-}) (onst  ofresult)
+})
 
 // ===== Edge cases and integration =====
 describe('Edge cases and integration', () => {
@@ -593,40 +593,40 @@ describe('Edge cases and integration', () => {
     expect(Array.isArray(result1)).toBe(true)
     expect(Array.isArray(result2)).toBe(true)
     expect(result1).toHaveLength(1)
-    res (tonst .toH ofaresult)Length(1)
+    expect(result2).toHaveLength(1)
   })
 
   test('getIcon should handle all DirentType values', () => {
     const testCases = [
-      { name: 'file.txt', type: 1, description: 'File' },
-      { name: 'dir', type: 2, description: 'Directory' },
-      { name: 'dir', type: 3, description: 'DirectoryExpanded' },
-      { name: 'link.js', type: 4, description: 'SymLinkFile' },
-      { name: 'link', type: 5, description: 'SymLinkFolder' },
-      { name: 'block', type: 6, description: 'BlockDevice' },
-      { name: 'char', type: 7, description: 'CharacterDevice' },
-      { name: 'sock', type: 8, description: 'Socket' },
-      { name: 'fifo', type: 9, description: 'FIFO/Pipe' },
+      { description: 'File', name: 'file.txt', type: 1 },
+      { description: 'Directory', name: 'dir', type: 2 },
+      { description: 'DirectoryExpanded', name: 'dir', type: 3 },
+      { description: 'SymLinkFile', name: 'link.js', type: 4 },
+      { description: 'SymLinkFolder', name: 'link', type: 5 },
+      { description: 'BlockDevice', name: 'block', type: 6 },
+      { description: 'CharacterDevice', name: 'char', type: 7 },
+      { description: 'Socket', name: 'sock', type: 8 },
+      { description: 'FIFO/Pipe', name: 'fifo', type: 9 },
     ]
 
-    testCases.forEach((testCase) => {
+    for (const testCase of testCases) {
       const result = GetIcon.getIcon({ name: testCase.name, type: testCase.type })
       expect(typeof result).toBe('string')
-    })fle.txt 1}
-      { 2}
-      {'functiod rts shoul 3d}b
-      {e consistent across calls',)st fileName .js= 'test. 4j}'
-      {st resul1in GetIcon. 5g}t
-      {FileNameIcon(fileName)st resulblotk GetIcon 6.}e
-      {tFileNameIcon(fileName)har 7}
-      {ect(resus)ck.toBe(re 8s}l
-      {t2)e', nam: 'fifo, type: 9
+    }
   })
 
-    fort(constest('shou o  rapid ses)ntial calls', () => {
+  test('function results should be consistent across calls', () => {
+    const fileName = 'test.js'
+    const result1 = GetIcon.getFileNameIcon(fileName)
+    const result2 = GetIcon.getFileNameIcon(fileName)
+
+    expect(result1).toBe(result2)
+  })
+
+  test('should handle rapid sequential calls', () => {
     for (let i = 0; i < 100; i++) {
       const result = GetIcon.getFileNameIcon(`file${i}.js`)
-     expect(typeof result).toBe('string')
+      expect(typeof result).toBe('string')
     }
   })
 })
