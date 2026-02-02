@@ -3,7 +3,6 @@ import type { Dirent } from '../src/parts/Dirent/Dirent.ts'
 import * as DefaultIcon from '../src/parts/DefaultIcon/DefaultIcon.ts'
 import * as GetIcon from '../src/parts/GetIcon/GetIcon.ts'
 import { getIcons } from '../src/parts/GetIcons/GetIcons.ts'
-import * as IconThemeState from '../src/parts/IconThemeState/IconThemeState.ts'
 
 beforeEach(() => {
   jest.spyOn(console, 'warn').mockImplementation(() => {})
