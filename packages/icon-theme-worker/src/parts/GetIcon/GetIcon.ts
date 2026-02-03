@@ -12,7 +12,8 @@ const getFileIconFromFileNames = (iconTheme: any, fileNameLower: string): string
   const baseUrl = IconThemeState.getExtensionBaseUrl()
 
   if (iconTheme.fileNames) {
-    const fileNameIcon = iconTheme.fileNames[fileNameLower]
+    const lowerNames = iconTheme.fileNames.map((name: string) => name.toLowerCase())
+    const fileNameIcon = lowerNames[fileNameLower]
     if (fileNameIcon) {
       return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, fileNameIcon, baseUrl)
     }
