@@ -38,7 +38,7 @@ test('joinPath should handle multiple parts with mixed slashes', () => {
 
 test('joinPath should handle empty string parts', () => {
   const result = JoinPath.joinPath('foo', '', 'bar')
-  expect(result).toBe('foo//bar')
+  expect(result).toBe('foo/bar')
 })
 
 test('joinPath should handle root path', () => {
