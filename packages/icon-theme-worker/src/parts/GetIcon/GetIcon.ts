@@ -8,11 +8,15 @@ import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 import * as Languages from '../Languages/Languages.ts'
 import * as Logger from '../Logger/Logger.ts'
 
+const toLowerCaseMap = (map: Readonly<Record<string, string>>): Record<string, string> => {
+  return Object.fromEntries(Object.entries(map).map((entry: readonly [string, unknown]) => [entry[0].toLowerCase(), entry[1]] as const))
+}
+
 const getFileIconFromFileNames = (iconTheme: any, fileNameLower: string): string => {
   const baseUrl = IconThemeState.getExtensionBaseUrl()
 
   if (iconTheme.fileNames) {
-    const lowerNames = iconTheme.fileNames.map((name: string) => name.toLowerCase())
+    const lowerNames = toLowerCaseMap(iconTheme.fileNames)
     const fileNameIcon = lowerNames[fileNameLower]
     if (fileNameIcon) {
       return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, fileNameIcon, baseUrl)
