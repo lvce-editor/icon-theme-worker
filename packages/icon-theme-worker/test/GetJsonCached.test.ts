@@ -1,4 +1,3 @@
-/* eslint-disable unicorn/no-nested-ternary */
 /* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
 import { test, expect, beforeEach } from '@jest/globals'
 import { VError } from '@lvce-editor/verror'
@@ -28,17 +27,17 @@ const createMockCache = (): Cache => {
       return []
     },
     async match(url: RequestInfo | URL): Promise<Response | undefined> {
-      const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url
+      const urlString = getUrlString(url)
       return cache.get(urlString)
     },
     async matchAll(): Promise<ReadonlyArray<Response>> {
       return [...cache.values()]
     },
     async put(url: RequestInfo | URL, response: Response): Promise<void> {
-      const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url
+      const urlString = getUrlString(url)
       cache.set(urlString, response)
     },
-  } as unknown as Cache
+  }
 }
 
 const setupMockStorageBuckets = (mockCache: Cache): void => {
@@ -59,18 +58,91 @@ const setupMockStorageBuckets = (mockCache: Cache): void => {
   }
 }
 
+type MockResponse = Response | (() => Response) | (() => never)
+
 type MockFetchOptions = {
-  getResponse?: Response | (() => Response) | (() => never)
-  onCall?: (input: RequestInfo | URL, init?: RequestInit) => void
+  getResponse?: MockResponse
+  onCall?: (input: RequestInfo | URL, init?: RequestInit) => Response | undefined
   urlMatcher?: (url: string) => {
-    getResponse?: Response | (() => Response) | (() => never)
+    getResponse?: MockResponse
   }
+}
+
+const getUrlString = (input: RequestInfo | URL): string => {
+  if (typeof input === 'string') {
+    return input
+  }
+  if (input instanceof URL) {
+    return input.toString()
+  }
+  return input.url
+}
+
+const getRequestMethod = (input: RequestInfo | URL, init?: RequestInit): string => {
+  if (init?.method) {
+    return init.method
+  }
+  if (typeof input === 'object' && 'method' in input) {
+    return input.method
+  }
+  return 'GET'
+}
+
+const getResponse = (mockResponse: MockResponse): Response => {
+  if (typeof mockResponse === 'function') {
+    return mockResponse()
+  }
+  return mockResponse
+}
+
+const getHeadEtag = (urlString: string): string => {
+  if (urlString.includes('api1')) {
+    return '"test-etag-1"'
+  }
+  if (urlString.includes('api2')) {
+    return '"test-etag-2"'
+  }
+  return '"test-etag"'
+}
+
+const getHeadResponse = (urlString: string, options: MockFetchOptions): Response | undefined => {
+  if (options.urlMatcher) {
+    const matched = options.urlMatcher(urlString)
+    if (matched?.getResponse) {
+      return new Response(null, {
+        headers: {
+          etag: getHeadEtag(urlString),
+        },
+        status: 200,
+      })
+    }
+  }
+  if (options.getResponse) {
+    return new Response(null, {
+      headers: {
+        etag: '"test-etag"',
+      },
+      status: 200,
+    })
+  }
+  return undefined
+}
+
+const getMatchedResponse = (urlString: string, options: MockFetchOptions): Response | undefined => {
+  if (!options.urlMatcher) {
+    return undefined
+  }
+  const matched = options.urlMatcher(urlString)
+  if (!matched?.getResponse) {
+    return undefined
+  }
+  return getResponse(matched.getResponse)
 }
 
 const mockFetch = (options: MockFetchOptions): typeof globalThis.fetch => {
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const urlString = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url
-    const method = init?.method || (typeof input === 'object' && 'method' in input ? input.method : 'GET')
+    const urlString = getUrlString(input)
+    const method = getRequestMethod(input, init)
 
     const headResponse = options.onCall?.(input, init)
     if (headResponse) {
@@ -78,39 +150,19 @@ const mockFetch = (options: MockFetchOptions): typeof globalThis.fetch => {
     }
 
     if (method === 'HEAD') {
-      if (options.urlMatcher) {
-        const matched = options.urlMatcher(urlString)
-        if (matched && matched.getResponse) {
-          const etag = urlString.includes('api1') ? '"test-etag-1"' : urlString.includes('api2') ? '"test-etag-2"' : '"test-etag"'
-          return new Response(null, {
-            headers: {
-              etag,
-            },
-            status: 200,
-          })
-        }
-      }
-      if (options.getResponse) {
-        return new Response(null, {
-          headers: {
-            etag: '"test-etag"',
-          },
-          status: 200,
-        })
-      }
-    }
-
-    if (options.urlMatcher) {
-      const matched = options.urlMatcher(urlString)
-      if (matched && matched.getResponse) {
-        const response = typeof matched.getResponse === 'function' ? matched.getResponse() : matched.getResponse
+      const response = getHeadResponse(urlString, options)
+      if (response) {
         return response
       }
     }
 
+    const matchedResponse = getMatchedResponse(urlString, options)
+    if (matchedResponse) {
+      return matchedResponse
+    }
+
     if (options.getResponse) {
-      const response = typeof options.getResponse === 'function' ? options.getResponse() : options.getResponse
-      return response
+      return getResponse(options.getResponse)
     }
 
     throw new Error('No response configured for this request')
@@ -254,7 +306,7 @@ test('getJsonCached should fallback to getJson when cache operations fail', asyn
     async put() {
       throw new Error('Cache put failed')
     },
-  } as unknown as Cache
+  }
   setupMockStorageBuckets(mockCache)
 
   globalThis.fetch = mockFetch({

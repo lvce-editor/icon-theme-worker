@@ -1,4 +1,4 @@
-import { test } from '@jest/globals'
+import { test, expect } from '@jest/globals'
 import { mockWorkerGlobalRpc } from '@lvce-editor/rpc'
 import * as Listen from '../src/parts/Listen/Listen.ts'
 
@@ -6,6 +6,6 @@ test('listen', async () => {
   const { dispose, start } = mockWorkerGlobalRpc()
   const listenPromise = Listen.listen()
   start()
-  await listenPromise
+  await expect(listenPromise).resolves.toBeUndefined()
   dispose()
 })
