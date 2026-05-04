@@ -1,12 +1,5 @@
 import type { ICache } from '../ICache/ICache.ts'
-
-const parseContentLength = (response: Response): number => {
-  const raw = response.headers.get('Content-Length')
-  if (raw) {
-    return Number.parseInt(raw, 10)
-  }
-  return 1
-}
+import { parseContentLength } from '../ParseContentLength/ParseContentLength.ts'
 
 export const putInCache = async (url: string, response: Response, cache: ICache): Promise<void> => {
   const length = parseContentLength(response)
