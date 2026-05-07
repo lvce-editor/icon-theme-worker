@@ -23,7 +23,7 @@ test('getBucketCache should open storage bucket with expected expiration and quo
   ;(globalThis.navigator as any).storageBuckets = {
     open: async (
       bucketName: string,
-      options: { expires: number; quota: number },
+      options: Readonly<{ expires: number; quota: number }>,
     ): Promise<{ caches: { open: (cacheName: string) => Promise<typeof mockCache> } }> => {
       actualBucketName = bucketName
       actualBucketOptions = options
