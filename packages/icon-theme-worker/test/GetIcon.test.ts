@@ -3,6 +3,7 @@ import type { Dirent } from '../src/parts/Dirent/Dirent.ts'
 import * as DefaultIcon from '../src/parts/DefaultIcon/DefaultIcon.ts'
 import * as GetIcon from '../src/parts/GetIcon/GetIcon.ts'
 import { getIcons } from '../src/parts/GetIcons/GetIcons.ts'
+import * as IconThemeState from '../src/parts/IconThemeState/IconThemeState.ts'
 
 beforeEach(() => {
   jest.spyOn(console, 'warn').mockImplementation(() => {})
@@ -96,6 +97,36 @@ test('getIcons should handle mixed file and folder requests', () => {
   expect(result).toHaveLength(2)
   expect(typeof result[0]).toBe('string')
   expect(typeof result[1]).toBe('string')
+})
+
+test('getIcons should use expanded folder icon for expanded folder requests', () => {
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/remote',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: {
+      folderNames: {
+        packages: 'folder-packages',
+      },
+      folderNamesExpanded: {
+        packages: 'folder-packages-open',
+      },
+      iconDefinitions: {
+        _folder: '/folder.svg',
+        _folder_open: '/folder-open.svg',
+        'folder-packages': '/folder-packages.svg',
+        'folder-packages-open': '/folder-packages-open.svg',
+      },
+    },
+  })
+
+  const result = getIcons([
+    { name: 'packages', type: 2 },
+    { expanded: true, name: 'packages', type: 2 },
+  ])
+
+  expect(result).toEqual(['/remote/folder-packages.svg', '/remote/folder-packages-open.svg'])
 })
 
 test('getFileNameIcon should handle empty filename', () => {
