@@ -114,7 +114,7 @@ export const getFolderIcon = (folder: any): string => {
   return getFolderNameIcon(folder.name)
 }
 
-const getFolderIconExpanded = (folder: any): string => {
+export const getFolderIconExpanded = (folder: any): string => {
   const baseUrl = IconThemeState.getExtensionBaseUrl()
 
   const iconTheme = IconThemeState.getIconTheme()
