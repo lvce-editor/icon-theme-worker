@@ -16,14 +16,14 @@ const toLowerCaseMap = (map: Readonly<Record<string, string>>): Record<string, s
 }
 
 const getFileIconFromFileNames = (iconTheme: any, fileNameLower: string): string => {
+  if (!iconTheme.fileNames) {
+    return ''
+  }
   const baseUrl = IconThemeState.getExtensionBaseUrl()
-
-  if (iconTheme.fileNames) {
-    const lowerNames = toLowerCaseMap(iconTheme.fileNames)
-    const fileNameIcon = lowerNames[fileNameLower]
-    if (fileNameIcon) {
-      return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, fileNameIcon, baseUrl)
-    }
+  const lowerNames = toLowerCaseMap(iconTheme.fileNames)
+  const fileNameIcon = lowerNames[fileNameLower]
+  if (fileNameIcon) {
+    return GetAbsoluteIconPath.getAbsoluteIconPath(iconTheme, fileNameIcon, baseUrl)
   }
   return ''
 }
@@ -63,13 +63,12 @@ const getFileIconFromLanguageIds = (iconTheme: any, fileNameLower: string): stri
 
 export const getFileNameIcon = (file: string): string => {
   Assert.string(file)
-  const baseUrl = IconThemeState.getExtensionBaseUrl()
-
   const iconTheme = IconThemeState.getIconTheme()
-  const fileNameLower = file.toLowerCase()
   if (!iconTheme) {
     return ''
   }
+  const baseUrl = IconThemeState.getExtensionBaseUrl()
+  const fileNameLower = file.toLowerCase()
   return (
     getFileIconFromFileNames(iconTheme, fileNameLower) ||
     getFileIconFromFileExtensions(iconTheme, fileNameLower) ||
@@ -83,11 +82,7 @@ export const getFileIcon = (file: any): string => {
 }
 
 export const getFileIcons = (fileNames: readonly any[]): readonly string[] => {
-  const icons = []
-  for (const fileName of fileNames) {
-    icons.push(getFileIcon(fileName))
-  }
-  return icons
+  return Array.from(fileNames, (fileName) => getFileIcon(fileName))
 }
 
 export const getFolderNameIcon = (folderName: string): string => {

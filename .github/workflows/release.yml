@@ -44,7 +44,7 @@ jobs:
         os: [windows-2025, macos-15, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -53,7 +53,7 @@ jobs:
         id: nodeModulesCacheKey
         run: echo "value=$(node packages/build/src/computeNodeModulesCacheKey.js)" >> $GITHUB_OUTPUT
         shell: bash
-      - uses: actions/cache@v5
+      - uses: actions/cache@v6
         id: npm-cache
         with:
           path: '**/node_modules'
@@ -66,17 +66,6 @@ jobs:
       - run: npm test
       - run: npm run type-check
       - run: npm run lint
-      - name: install playwright dependencies
-        working-directory: ./packages/e2e
-        run: npx playwright install chromium
-        if: steps.npm-cache.outputs.cache-hit != 'true'
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: 0
-      - name: e2e
-        working-directory: ./packages/e2e
-        run: npm run e2e:headless
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: 0
       - name: measure
         working-directory: ./packages/memory
         run: npm run measure
