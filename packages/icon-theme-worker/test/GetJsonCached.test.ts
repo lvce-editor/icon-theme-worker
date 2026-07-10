@@ -1,17 +1,24 @@
-/* eslint-disable @typescript-eslint/prefer-readonly-parameter-types */
-import { test, expect, beforeEach } from '@jest/globals'
+import { jest, test, expect, beforeEach } from '@jest/globals'
 import { VError } from '@lvce-editor/verror'
 import * as GetCache from '../src/parts/GetCache/GetCache.ts'
 import * as GetJsonCached from '../src/parts/GetJsonCached/GetJsonCached.ts'
 
-const originalFetch = globalThis.fetch
-const originalStorageBuckets = (globalThis.navigator as any).storageBuckets
-const originalLocation = (globalThis as any).location
+type CacheContainer = {
+  open: () => Promise<{
+    caches: {
+      open: () => Promise<Cache>
+    }
+  }>
+}
+
+const navigatorObject = globalThis.navigator as {
+  storageBuckets?: CacheContainer
+}
+const originalStorageBuckets = navigatorObject.storageBuckets
 
 beforeEach(() => {
-  globalThis.fetch = originalFetch
-  ;(globalThis.navigator as any).storageBuckets = originalStorageBuckets
-  ;(globalThis as any).location = originalLocation || { protocol: 'https:' }
+  jest.restoreAllMocks()
+  navigatorObject.storageBuckets = originalStorageBuckets
   GetCache.resetCache()
 })
 
@@ -26,30 +33,32 @@ const createMockCache = (): Cache => {
     async keys(): Promise<ReadonlyArray<Request>> {
       return []
     },
-    async match(url: RequestInfo | URL): Promise<Response | undefined> {
+    async match(url: string): Promise<Response | undefined> {
       const urlString = getUrlString(url)
       return cache.get(urlString)
     },
     async matchAll(): Promise<ReadonlyArray<Response>> {
-      return [...cache.values()]
+      return cache.values().toArray()
     },
-    async put(url: RequestInfo | URL, response: Response): Promise<void> {
+    async put(url: string, response: unknown): Promise<void> {
       const urlString = getUrlString(url)
-      cache.set(urlString, response)
+      cache.set(urlString, response as Response)
     },
   }
 }
 
-const setupMockStorageBuckets = (mockCache: Cache): void => {
-  ;(globalThis.navigator as any).storageBuckets = {
-    async open(): Promise<{
+type ReadonlyCache = Readonly<Cache>
+
+const setupMockStorageBuckets = (mockCache: ReadonlyCache): void => {
+  navigatorObject.storageBuckets = {
+    open: async (): Promise<{
       caches: {
-        open(): Promise<Cache>
+        open: () => Promise<Cache>
       }
-    }> {
+    }> => {
       return {
         caches: {
-          async open(): Promise<Cache> {
+          open: async (): Promise<Cache> => {
             return mockCache
           },
         },
@@ -62,28 +71,19 @@ type MockResponse = Response | (() => Response) | (() => never)
 
 type MockFetchOptions = {
   getResponse?: MockResponse
-  onCall?: (input: RequestInfo | URL, init?: RequestInit) => Response | undefined
+  onCall?: (url: string, method?: string) => Response | undefined
   urlMatcher?: (url: string) => {
     getResponse?: MockResponse
   }
 }
 
-const getUrlString = (input: RequestInfo | URL): string => {
-  if (typeof input === 'string') {
-    return input
-  }
-  if (input instanceof URL) {
-    return input.toString()
-  }
-  return input.url
+const getUrlString = (input: string): string => {
+  return input
 }
 
-const getRequestMethod = (input: RequestInfo | URL, init?: RequestInit): string => {
-  if (init?.method) {
-    return init.method
-  }
-  if (typeof input === 'object' && 'method' in input) {
-    return input.method
+const getRequestMethod = (method?: string): string => {
+  if (method) {
+    return method
   }
   return 'GET'
 }
@@ -105,7 +105,7 @@ const getHeadEtag = (urlString: string): string => {
   return '"test-etag"'
 }
 
-const getHeadResponse = (urlString: string, options: MockFetchOptions): Response | undefined => {
+const getHeadResponse = (urlString: string, options: Readonly<MockFetchOptions>): Response | undefined => {
   if (options.urlMatcher) {
     const matched = options.urlMatcher(urlString)
     if (matched?.getResponse) {
@@ -128,7 +128,7 @@ const getHeadResponse = (urlString: string, options: MockFetchOptions): Response
   return undefined
 }
 
-const getMatchedResponse = (urlString: string, options: MockFetchOptions): Response | undefined => {
+const getMatchedResponse = (urlString: string, options: Readonly<MockFetchOptions>): Response | undefined => {
   if (!options.urlMatcher) {
     return undefined
   }
@@ -139,12 +139,13 @@ const getMatchedResponse = (urlString: string, options: MockFetchOptions): Respo
   return getResponse(matched.getResponse)
 }
 
-const mockFetch = (options: MockFetchOptions): typeof globalThis.fetch => {
-  return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+const mockFetch = (options: Readonly<MockFetchOptions>): void => {
+  jest.spyOn(globalThis, 'fetch').mockImplementation(async (...args: readonly unknown[]): Promise<Response> => {
+    const [input, init] = args as [string, Readonly<RequestInit> | undefined]
     const urlString = getUrlString(input)
-    const method = getRequestMethod(input, init)
+    const method = getRequestMethod(init?.method)
 
-    const headResponse = options.onCall?.(input, init)
+    const headResponse = options.onCall?.(urlString, method)
     if (headResponse) {
       return headResponse
     }
@@ -166,12 +167,12 @@ const mockFetch = (options: MockFetchOptions): typeof globalThis.fetch => {
     }
 
     throw new Error('No response configured for this request')
-  }
+  })
 }
 
 test('getJsonCached should call getJson when useCache is false', async () => {
   const mockData = { name: 'test', value: 123 }
-  globalThis.fetch = mockFetch({
+  mockFetch({
     getResponse: Response.json(mockData),
   })
 
@@ -188,7 +189,7 @@ test('getJsonCached should use cache when useCache is true', async () => {
   setupMockStorageBuckets(mockCache)
   let getCallCount = 0
 
-  globalThis.fetch = mockFetch({
+  mockFetch({
     getResponse: () => {
       getCallCount++
       return Response.json(mockData, {
@@ -210,7 +211,7 @@ test('getJsonCached should use cache when useCache is true', async () => {
 })
 
 test('getJsonCached should throw VError when fetch fails and useCache is false', async () => {
-  globalThis.fetch = mockFetch({
+  mockFetch({
     getResponse: () => {
       throw new Error('Network error')
     },
@@ -223,7 +224,7 @@ test('getJsonCached should throw VError when fetch fails and useCache is true', 
   const mockCache = createMockCache()
   setupMockStorageBuckets(mockCache)
 
-  globalThis.fetch = mockFetch({
+  mockFetch({
     getResponse: () => {
       throw new Error('Network error')
     },
@@ -239,7 +240,7 @@ test('getJsonCached should cache different URLs separately', async () => {
   setupMockStorageBuckets(mockCache)
   let getCallCount = 0
 
-  globalThis.fetch = mockFetch({
+  mockFetch({
     urlMatcher: (url: string) => {
       if (url.includes('api1')) {
         return {
@@ -309,7 +310,7 @@ test('getJsonCached should fallback to getJson when cache operations fail', asyn
   }
   setupMockStorageBuckets(mockCache)
 
-  globalThis.fetch = mockFetch({
+  mockFetch({
     getResponse: () => {
       getCallCount++
       return Response.json(mockData, {
@@ -331,13 +332,12 @@ test('getJsonCached should fallback to getJson when HEAD response is not ok', as
   const mockCache = createMockCache()
   setupMockStorageBuckets(mockCache)
 
-  globalThis.fetch = mockFetch({
+  mockFetch({
     getResponse: () => {
       getCallCount++
       return Response.json(mockData)
     },
-    onCall: (input, init) => {
-      const method = init?.method || 'GET'
+    onCall: (_input: string, method?: string) => {
       if (method === 'HEAD') {
         return new Response(null, {
           status: 404,
@@ -358,7 +358,7 @@ test('getJsonCached should handle getJson error when fetch fails', async () => {
   const mockCache = createMockCache()
   setupMockStorageBuckets(mockCache)
 
-  globalThis.fetch = mockFetch({
+  mockFetch({
     getResponse: () => {
       throw new Error('GET request failed')
     },

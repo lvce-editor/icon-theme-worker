@@ -4,13 +4,13 @@ export const name = 'icon-theme.change'
 
 export const skip = true
 
-export const test: Test = async ({ BaseUrl, expect, Extension, FileSystem, IconTheme, Locator, Workspace }) => {
+export const test: Test = async ({ BaseUrl, expect, Extension, FileSystem, IconTheme, Locator, Workspace }: Readonly<Parameters<typeof test>[0]>) => {
   // arrange
   const tmpDir = await FileSystem.getTmpDir()
   await FileSystem.writeFile(`${tmpDir}/test.xyz`, 'test')
   await FileSystem.mkdir(`${tmpDir}/test-folder`)
   await Workspace.setPath(tmpDir)
-  await Extension.addWebExtension(new URL('../fixtures/sample.icon-theme', import.meta.url).toString())
+  await Extension.addWebExtension(import.meta.resolve('../fixtures/sample.icon-theme'))
 
   // act
   await IconTheme.setIconTheme('test-icon-theme')

@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-global-object-property-assignment */
 import { test, expect, beforeEach } from '@jest/globals'
 import { PlatformType } from '@lvce-editor/constants'
 import * as DoGetIconThemeJson from '../src/parts/DoGetIconThemeJson/DoGetIconThemeJson.ts'

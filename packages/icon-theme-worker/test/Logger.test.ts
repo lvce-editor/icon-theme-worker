@@ -86,7 +86,7 @@ test('warn should handle multiple arguments of different types', () => {
 test('error should handle multiple arguments of different types', () => {
   const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
-  const args = ['error', -1, Number.NaN, Infinity, { error: 'test' }, new Error('test')]
+  const args = ['error', -1, NaN, Infinity, { error: 'test' }, new Error('test')]
   error(...args)
 
   expect(consoleSpy).toHaveBeenCalledWith(...args)

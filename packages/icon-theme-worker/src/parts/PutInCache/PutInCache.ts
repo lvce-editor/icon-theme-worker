@@ -5,7 +5,7 @@ export const putInCache = async (url: string, response: Response, cache: ICache)
   const length = parseContentLength(response)
   const cachingResponse = new Response(response.body, {
     headers: {
-      'Content-Length': `${length}`,
+      'Content-Length': String(length),
       'Content-Type': 'application/json',
     },
   })
