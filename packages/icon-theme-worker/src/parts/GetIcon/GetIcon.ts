@@ -1,6 +1,6 @@
 import { DirentType } from '@lvce-editor/constants'
 import type { Dirent } from '../Dirent/Dirent.ts'
-import * as Assert from '../Assert/Assert.ts'
+import { string } from '../Assert/Assert.ts'
 import * as Character from '../Character/Character.ts'
 import * as DefaultIcon from '../DefaultIcon/DefaultIcon.ts'
 import * as GetAbsoluteIconPath from '../GetAbsoluteIconPath/GetAbsoluteIconPath.ts'
@@ -62,7 +62,7 @@ const getFileIconFromLanguageIds = (iconTheme: any, fileNameLower: string): stri
 }
 
 export const getFileNameIcon = (file: string): string => {
-  Assert.string(file)
+  string(file)
   const iconTheme = IconThemeState.getIconTheme()
   if (!iconTheme) {
     return ''
