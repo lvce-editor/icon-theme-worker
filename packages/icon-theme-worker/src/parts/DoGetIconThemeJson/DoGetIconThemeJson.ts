@@ -4,6 +4,7 @@ import * as FindMatchingIconThemeExtension from '../FindMatchingIconThemeExtensi
 import { getIconThemeJsonUrl } from '../GetIconThemeJsonUrl/GetIconThemeJsonUrl.ts'
 import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
 import { getJsonCached } from '../GetJsonCached/GetJsonCached.ts'
+import { optimizeBuiltinIconTheme } from '../OptimizeBuiltinIconTheme/OptimizeBuiltinIconTheme.ts'
 
 export const doGetIconThemeJson = async (
   extensions: readonly any[],
@@ -33,6 +34,15 @@ export const doGetIconThemeJson = async (
   }
   const iconThemeUrl = getIconThemeJsonUrl(iconTheme)
   const iconThemeJson = await getJsonCached(iconThemeUrl, useCache, bucketName, cacheName, locationProtocol, iconThemeId, commit)
+  if (platform === PlatformType.Electron && iconTheme.extensionId === 'builtin.vscode-icons') {
+    return {
+      extensionBaseUrl: assetDir,
+      extensionPath: iconTheme.extensionPath,
+      extensionRemoteUri: '',
+      extensionUri: iconTheme.extensionUri || '',
+      json: optimizeBuiltinIconTheme(iconThemeJson, iconTheme.extensionId),
+    }
+  }
   return {
     extensionBaseUrl: iconTheme.extensionRemoteUri || '',
     extensionPath: iconTheme.extensionPath,

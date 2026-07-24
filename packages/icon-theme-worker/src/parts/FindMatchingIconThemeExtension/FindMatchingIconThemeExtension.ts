@@ -9,6 +9,7 @@ export const findMatchingIconThemeExtension = (extensions: readonly any[], iconT
           const extensionRemoteUri = getExtensionRemoteUri(extension.uri, extension.path, platform)
           return {
             ...iconTheme,
+            extensionId: extension.id,
             extensionPath: extension.path,
             extensionRemoteUri,
             extensionUri: extension.uri,

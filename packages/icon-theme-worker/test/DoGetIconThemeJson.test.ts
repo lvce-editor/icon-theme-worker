@@ -48,3 +48,44 @@ test('doGetIconThemeJson should return undefined when icon theme is not found fo
 
   expect(result).toBeUndefined()
 })
+
+test('doGetIconThemeJson should use optimized paths for builtin vscode-icons on electron', async () => {
+  const mockJson = {
+    iconDefinitions: {
+      _file: '/icons/default_file.svg',
+    },
+  }
+  globalThis.fetch = async (): Promise<Response> => {
+    return {
+      json: async () => mockJson,
+      ok: true,
+    } as unknown as Response
+  }
+  const extensions = [
+    {
+      iconThemes: [
+        {
+          id: 'vscode-icons',
+          path: 'icon-theme.json',
+        },
+      ],
+      id: 'builtin.vscode-icons',
+      path: '/usr/lib/lvce/resources/app/static/abc/extensions/builtin.vscode-icons',
+      uri: 'file:///usr/lib/lvce/resources/app/static/abc/extensions/builtin.vscode-icons',
+    },
+  ]
+
+  const result = await DoGetIconThemeJson.doGetIconThemeJson(extensions, 'vscode-icons', '/abc', PlatformType.Electron, false, 'abc')
+
+  expect(result).toEqual({
+    extensionBaseUrl: '/abc',
+    extensionPath: '/usr/lib/lvce/resources/app/static/abc/extensions/builtin.vscode-icons',
+    extensionRemoteUri: '',
+    extensionUri: 'file:///usr/lib/lvce/resources/app/static/abc/extensions/builtin.vscode-icons',
+    json: {
+      iconDefinitions: {
+        _file: '/file-icons/default_file.svg',
+      },
+    },
+  })
+})
