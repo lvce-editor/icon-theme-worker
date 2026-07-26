@@ -3,17 +3,19 @@
   "version": "0.0.0-dev",
   "license": "MIT",
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "node packages/build/src/build.js",
     "build:static": "node packages/build/src/build-static.js",
     "build:watch": "./packages/build/node_modules/.bin/esbuild --format=esm --bundle --external:node:buffer --external:electron --external:ws --external:node:worker_threads --watch packages/icon-theme-worker/src/iconThemeWorkerMain.ts --outfile=.tmp/dist/dist/iconThemeWorkerMain.js",
     "dev": "node packages/build/src/dev.js",
-    "e2e": "cd packages/e2e && npm run e2e",
+    "e2e": "npm run e2e --workspace=packages/e2e",
     "format": "prettier --write .",
-    "postinstall": "lerna bootstrap --ci",
     "lint": "eslint . && prettier --check .",
-    "measure": "cd packages/memory && npm run measure",
-    "test": "lerna run test",
+    "measure": "npm run measure --workspace=packages/memory",
+    "test": "npm test --workspaces --if-present",
     "type-check": "tsc -b"
   },
   "prettier": {
@@ -22,10 +24,8 @@
     "printWidth": 150
   },
   "devDependencies": {
-    "@lerna/legacy-package-management": "^8.2.4",
     "@lvce-editor/eslint-config": "^17.5.0",
     "eslint": "^10.8.0",
-    "lerna": "^8.2.4",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3"
   }
