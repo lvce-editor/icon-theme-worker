@@ -10,25 +10,28 @@ export const getJsonCached = async (
   cacheName: string,
   locationProtocol: string,
   iconThemeId = '-',
-  commit = '-',
+  etag = '',
 ): Promise<any> => {
   if (!useCache) {
     return getJson(url)
   }
 
   try {
-    const headResponse = await fetch(url, { method: 'HEAD' })
-    if (!headResponse.ok) {
-      throw new Error(headResponse.statusText)
-    }
+    let resolvedEtag = etag
+    if (!resolvedEtag) {
+      const headResponse = await fetch(url, { method: 'HEAD' })
+      if (!headResponse.ok) {
+        throw new Error(headResponse.statusText)
+      }
 
-    const etag = headResponse.headers.get('etag')
-    if (!etag) {
-      return getJson(url)
+      resolvedEtag = headResponse.headers.get('etag') || ''
+      if (!resolvedEtag) {
+        return getJson(url)
+      }
     }
 
     const cache = await getCache(bucketName, cacheName)
-    const cacheKey = await getIconThemeCacheKey(etag, iconThemeId, commit, locationProtocol)
+    const cacheKey = await getIconThemeCacheKey(resolvedEtag, iconThemeId, locationProtocol)
     const cachedResponse = await cache.match(cacheKey)
 
     if (cachedResponse) {
