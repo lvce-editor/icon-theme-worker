@@ -2,7 +2,7 @@ import { doGetIconThemeJson } from '../DoGetIconThemeJson/DoGetIconThemeJson.ts'
 import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 
 // TODO use cache storage or indexeddb for caching color theme
-// use unique cache key based on content hash and/or commit hash
+// use unique cache key based on content hash
 // when it's not cached, fetch should be quite fast
 // though one needs to take care to not allow this worker or any worker
 // read arbitrary files on disk
@@ -16,12 +16,12 @@ export const loadIconThemeJson = async (
   assetDir: string,
   platform: number,
   useCache: boolean,
-  commit: string,
+  etag = '',
 ): Promise<any> => {
   if (!iconThemeId) {
     return ''
   }
-  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform, useCache, commit)
+  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform, useCache, etag)
   IconThemeState.setTheme(json)
   return json
 }

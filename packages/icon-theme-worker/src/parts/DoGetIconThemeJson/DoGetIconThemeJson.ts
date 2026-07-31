@@ -12,14 +12,14 @@ export const doGetIconThemeJson = async (
   assetDir: string,
   platform: number,
   useCache: boolean,
-  commit: string,
+  etag: string,
 ): Promise<LoadedIconTheme | undefined> => {
   const cacheName = 'lvce-editor-icon-themes'
   const bucketName = 'lvce-editor-icon-themes'
   const locationProtocol = location.protocol
   if (platform === PlatformType.Web) {
     const url = GetIconThemeUrl.getIconThemeUrl(assetDir, iconThemeId)
-    const json = await getJsonCached(url, useCache, bucketName, cacheName, locationProtocol, iconThemeId, commit)
+    const json = await getJsonCached(url, useCache, bucketName, cacheName, locationProtocol, iconThemeId, etag)
     return {
       extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
       extensionPath: `${assetDir}/extensions/builtin.${iconThemeId}`,
@@ -33,7 +33,7 @@ export const doGetIconThemeJson = async (
     return undefined
   }
   const iconThemeUrl = getIconThemeJsonUrl(iconTheme)
-  const iconThemeJson = await getJsonCached(iconThemeUrl, useCache, bucketName, cacheName, locationProtocol, iconThemeId, commit)
+  const iconThemeJson = await getJsonCached(iconThemeUrl, useCache, bucketName, cacheName, locationProtocol, iconThemeId, etag)
   if (platform === PlatformType.Electron && iconTheme.extensionId === 'builtin.vscode-icons') {
     return {
       extensionBaseUrl: assetDir,

@@ -210,6 +210,53 @@ test('getJsonCached should use cache when useCache is true', async () => {
   expect(getCallCount).toBe(1)
 })
 
+test('getJsonCached should reuse a provided content etag across deployment URLs without a HEAD request', async () => {
+  const mockData = { name: 'test', value: 123 }
+  const mockCache = createMockCache()
+  setupMockStorageBuckets(mockCache)
+  let getCallCount = 0
+  let headCallCount = 0
+
+  mockFetch({
+    getResponse: () => {
+      getCallCount++
+      return Response.json(mockData)
+    },
+    onCall: (_url: string, method?: string) => {
+      if (method === 'HEAD') {
+        headCallCount++
+      }
+      return undefined
+    },
+  })
+
+  const cacheName = `test-cache-${Date.now()}-${Math.random()}`
+  const etag = 'content-hash'
+  const result1 = await GetJsonCached.getJsonCached(
+    'https://example.com/first-deployment/icon-theme.json',
+    true,
+    'test-bucket',
+    cacheName,
+    'https:',
+    'test-theme',
+    etag,
+  )
+  const result2 = await GetJsonCached.getJsonCached(
+    'https://example.com/second-deployment/icon-theme.json',
+    true,
+    'test-bucket',
+    cacheName,
+    'https:',
+    'test-theme',
+    etag,
+  )
+
+  expect(result1).toEqual(mockData)
+  expect(result2).toEqual(mockData)
+  expect(getCallCount).toBe(1)
+  expect(headCallCount).toBe(0)
+})
+
 test('getJsonCached should throw VError when fetch fails and useCache is false', async () => {
   mockFetch({
     getResponse: () => {
