@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals'
-import { loadIconThemeJson } from '../src/parts/GetIconThemeJson/GetIconThemeJson.ts'
 import { getFileIcon } from '../src/parts/GetIcon/GetIcon.ts'
+import { loadIconThemeJson } from '../src/parts/GetIconThemeJson/GetIconThemeJson.ts'
 import * as IconThemeState from '../src/parts/IconThemeState/IconThemeState.ts'
 
 test('loadIconThemeJson clears the current icon theme when the id is null', async () => {
