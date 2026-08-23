@@ -19,6 +19,9 @@ const hasHttpExtensionPath = (iconTheme: any): boolean => {
 
 export const setTheme = (iconTheme: LoadedIconTheme | undefined): void => {
   if (!iconTheme) {
+    state.iconTheme = InitialIconTheme.initialIconTheme
+    state.extensionPath = ''
+    state.extensionBaseUrl = ''
     return
   }
   state.iconTheme = iconTheme.json

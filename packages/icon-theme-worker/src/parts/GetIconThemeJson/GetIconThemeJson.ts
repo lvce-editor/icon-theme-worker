@@ -12,13 +12,14 @@ import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 
 export const loadIconThemeJson = async (
   extensions: readonly any[],
-  iconThemeId: string,
+  iconThemeId: string | null,
   assetDir: string,
   platform: number,
   useCache: boolean,
   etag = '',
 ): Promise<any> => {
   if (!iconThemeId) {
+    IconThemeState.setTheme(undefined)
     return ''
   }
   const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform, useCache, etag)
