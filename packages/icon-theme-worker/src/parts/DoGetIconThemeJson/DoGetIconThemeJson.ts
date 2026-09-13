@@ -6,6 +6,12 @@ import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
 import { getJsonCached } from '../GetJsonCached/GetJsonCached.ts'
 import { optimizeBuiltinIconTheme } from '../OptimizeBuiltinIconTheme/OptimizeBuiltinIconTheme.ts'
 
+const isDisabledIconTheme = (extensions: readonly any[], iconThemeId: string): boolean => {
+  return extensions.some((extension) => {
+    return extension?.disabled && extension.iconThemes?.some((iconTheme: any) => iconTheme.id === iconThemeId)
+  })
+}
+
 export const doGetIconThemeJson = async (
   extensions: readonly any[],
   iconThemeId: string,
@@ -18,6 +24,9 @@ export const doGetIconThemeJson = async (
   const bucketName = 'lvce-editor-icon-themes'
   const locationProtocol = location.protocol
   if (platform === PlatformType.Web) {
+    if (isDisabledIconTheme(extensions, iconThemeId)) {
+      return undefined
+    }
     const url = GetIconThemeUrl.getIconThemeUrl(assetDir, iconThemeId)
     const json = await getJsonCached(url, useCache, bucketName, cacheName, locationProtocol, iconThemeId, etag)
     return {

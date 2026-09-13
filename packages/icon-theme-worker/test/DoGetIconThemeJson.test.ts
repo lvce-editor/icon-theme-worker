@@ -43,6 +43,24 @@ test('doGetIconThemeJson should return icon theme json for web platform with use
   expect(result?.extensionBaseUrl).toBe('/assets/extensions/builtin.test-theme')
 })
 
+test('doGetIconThemeJson should return undefined for a disabled web icon theme', async () => {
+  const extensions = [
+    {
+      disabled: true,
+      iconThemes: [
+        {
+          id: 'test-theme',
+          path: 'icon-theme.json',
+        },
+      ],
+    },
+  ]
+
+  const result = await DoGetIconThemeJson.doGetIconThemeJson(extensions, 'test-theme', '/assets', PlatformType.Web, false, '')
+
+  expect(result).toBeUndefined()
+})
+
 test('doGetIconThemeJson should return undefined when icon theme is not found for non-web platform', async () => {
   const result = await DoGetIconThemeJson.doGetIconThemeJson([], 'test-theme', '/assets', PlatformType.Remote, false, '')
 
