@@ -1,5 +1,6 @@
 import { DirentType } from '@lvce-editor/constants'
 import type { Dirent } from '../Dirent/Dirent.ts'
+import type { IconTheme } from '../IconTheme/IconTheme.ts'
 import { string } from '../Assert/Assert.ts'
 import * as Character from '../Character/Character.ts'
 import * as DefaultIcon from '../DefaultIcon/DefaultIcon.ts'
@@ -15,7 +16,11 @@ const toLowerCaseMap = (map: Readonly<Record<string, string>>): Record<string, s
   >
 }
 
-const getFileIconFromFileNames = (iconTheme: any, fileNameLower: string): string => {
+export interface NamedEntry {
+  readonly name: string
+}
+
+const getFileIconFromFileNames = (iconTheme: IconTheme, fileNameLower: string): string => {
   if (!iconTheme.fileNames) {
     return ''
   }
@@ -28,7 +33,7 @@ const getFileIconFromFileNames = (iconTheme: any, fileNameLower: string): string
   return ''
 }
 
-const getFileIconFromFileExtensions = (iconTheme: any, fileNameLower: string): string => {
+const getFileIconFromFileExtensions = (iconTheme: IconTheme, fileNameLower: string): string => {
   const baseUrl = IconThemeState.getExtensionBaseUrl()
   if (iconTheme.fileExtensions) {
     let index = -1
@@ -43,7 +48,7 @@ const getFileIconFromFileExtensions = (iconTheme: any, fileNameLower: string): s
   return ''
 }
 
-const getFileIconFromLanguageIds = (iconTheme: any, fileNameLower: string): string => {
+const getFileIconFromLanguageIds = (iconTheme: IconTheme, fileNameLower: string): string => {
   const baseUrl = IconThemeState.getExtensionBaseUrl()
   if (iconTheme.languageIds) {
     const languageId: string = Languages.getLanguageId(fileNameLower)
@@ -77,11 +82,11 @@ export const getFileNameIcon = (file: string): string => {
   )
 }
 
-export const getFileIcon = (file: any): string => {
+export const getFileIcon = (file: NamedEntry): string => {
   return getFileNameIcon(file.name)
 }
 
-export const getFileIcons = (fileNames: readonly any[]): readonly string[] => {
+export const getFileIcons = (fileNames: readonly NamedEntry[]): readonly string[] => {
   return Array.from(fileNames, (fileName) => getFileIcon(fileName))
 }
 
@@ -105,11 +110,11 @@ export const getFolderNameIcon = (folderName: string): string => {
   return ''
 }
 
-export const getFolderIcon = (folder: any): string => {
+export const getFolderIcon = (folder: NamedEntry): string => {
   return getFolderNameIcon(folder.name)
 }
 
-export const getFolderIconExpanded = (folder: any): string => {
+export const getFolderIconExpanded = (folder: NamedEntry): string => {
   const baseUrl = IconThemeState.getExtensionBaseUrl()
 
   const iconTheme = IconThemeState.getIconTheme()
