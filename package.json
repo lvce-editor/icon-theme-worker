@@ -14,7 +14,7 @@
     "e2e": "npm run e2e --workspace=packages/e2e",
     "format": "prettier --write .",
     "lint": "eslint . && prettier --check .",
-    "measure": "npm run measure --workspace=packages/memory",
+    "measure": "npm run measure --workspace=packages/build",
     "test": "npm test --workspaces --if-present",
     "type-check": "tsc -b"
   },
