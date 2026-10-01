@@ -1,20 +1,25 @@
+import type { IconTheme } from '../IconTheme/IconTheme.ts'
 import type { LoadedIconTheme } from '../LoadedIconTheme/LoadedIconTheme.ts'
 import * as InitialIconTheme from '../InitialIconTheme/InitialIconTheme.ts'
 
-const state = {
+const state: {
+  extensionBaseUrl: string
+  extensionPath: string
+  hasWarned: string[]
+  iconTheme: IconTheme | undefined
+  seenFiles: string[]
+  seenFolders: string[]
+} = {
   extensionBaseUrl: '',
   extensionPath: '',
   hasWarned: [],
-  /**
-   * @type{any}
-   */
   iconTheme: InitialIconTheme.initialIconTheme,
   seenFiles: [],
   seenFolders: [],
 }
 
-const hasHttpExtensionPath = (iconTheme: any): boolean => {
-  return iconTheme.extensionPath && (iconTheme.extensionPath.startsWith('http://') || iconTheme.extensionPath.startsWith('https://'))
+const hasHttpExtensionPath = (iconTheme: LoadedIconTheme): boolean => {
+  return Boolean(iconTheme.extensionPath && (iconTheme.extensionPath.startsWith('http://') || iconTheme.extensionPath.startsWith('https://')))
 }
 
 export const setTheme = (iconTheme: LoadedIconTheme | undefined): void => {
@@ -36,6 +41,6 @@ export const getExtensionBaseUrl = (): string => {
   return state.extensionBaseUrl || ''
 }
 
-export const getIconTheme = (): any => {
+export const getIconTheme = (): IconTheme | undefined => {
   return state.iconTheme
 }

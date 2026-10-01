@@ -1,3 +1,5 @@
+import type { IconThemeExtension } from '../IconThemeExtension/IconThemeExtension.ts'
+import type { LoadedIconTheme } from '../LoadedIconTheme/LoadedIconTheme.ts'
 import { doGetIconThemeJson } from '../DoGetIconThemeJson/DoGetIconThemeJson.ts'
 import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 
@@ -11,13 +13,13 @@ import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 // or the extension host worker or another worker
 
 export const loadIconThemeJson = async (
-  extensions: readonly any[],
+  extensions: readonly IconThemeExtension[],
   iconThemeId: string | null,
   assetDir: string,
   platform: number,
   useCache: boolean,
   etag = '',
-): Promise<any> => {
+): Promise<LoadedIconTheme | '' | undefined> => {
   if (!iconThemeId) {
     IconThemeState.setTheme(undefined)
     return ''

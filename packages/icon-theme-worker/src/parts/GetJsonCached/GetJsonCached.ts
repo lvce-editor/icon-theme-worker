@@ -11,7 +11,7 @@ export const getJsonCached = async (
   locationProtocol: string,
   iconThemeId = '-',
   etag = '',
-): Promise<any> => {
+): Promise<unknown> => {
   if (!useCache) {
     return getJson(url)
   }

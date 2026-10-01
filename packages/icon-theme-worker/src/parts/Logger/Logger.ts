@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 
-export const info = (...args: readonly any[]): void => {
+export const info = (...args: readonly unknown[]): void => {
   console.info(...args)
 }
 
-export const warn = (...args: readonly any[]): void => {
+export const warn = (...args: readonly unknown[]): void => {
   console.warn(...args)
 }
 
-export const error = (...args: readonly any[]): void => {
+export const error = (...args: readonly unknown[]): void => {
   console.error(...args)
 }
