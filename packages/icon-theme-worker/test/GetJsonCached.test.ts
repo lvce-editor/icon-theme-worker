@@ -1,415 +1,201 @@
 import { jest, test, expect, beforeEach } from '@jest/globals'
 import { VError } from '@lvce-editor/verror'
-import * as GetCache from '../src/parts/GetCache/GetCache.ts'
+import * as CacheWorker from '../src/parts/CacheWorker/CacheWorker.ts'
+import { getIconThemeCacheKey } from '../src/parts/GetIconThemeCacheKey/GetIconThemeCacheKey.ts'
 import * as GetJsonCached from '../src/parts/GetJsonCached/GetJsonCached.ts'
 
-type CacheContainer = {
-  open: () => Promise<{
-    caches: {
-      open: () => Promise<Cache>
-    }
-  }>
-}
-
-const navigatorObject = globalThis.navigator as {
-  storageBuckets?: CacheContainer
-}
-const originalStorageBuckets = navigatorObject.storageBuckets
+const cacheName = 'test-cache'
+const bucketName = 'test-bucket'
+const locationProtocol = 'https:'
+const mockData = { name: 'test', value: 123 }
 
 beforeEach(() => {
   jest.restoreAllMocks()
-  navigatorObject.storageBuckets = originalStorageBuckets
-  GetCache.resetCache()
 })
 
-const createMockCache = (): Cache => {
-  const cache = new Map<string, Response>()
-  return {
-    async add(): Promise<void> {},
-    async addAll(): Promise<void> {},
-    async delete(): Promise<boolean> {
-      return false
-    },
-    async keys(): Promise<ReadonlyArray<Request>> {
-      return []
-    },
-    async match(url: string): Promise<Response | undefined> {
-      const urlString = getUrlString(url)
-      return cache.get(urlString)
-    },
-    async matchAll(): Promise<ReadonlyArray<Response>> {
-      return cache.values().toArray()
-    },
-    async put(url: string, response: unknown): Promise<void> {
-      const urlString = getUrlString(url)
-      cache.set(urlString, response as Response)
-    },
-  }
-}
-
-type ReadonlyCache = Readonly<Cache>
-
-const setupMockStorageBuckets = (mockCache: ReadonlyCache): void => {
-  navigatorObject.storageBuckets = {
-    open: async (): Promise<{
-      caches: {
-        open: () => Promise<Cache>
-      }
-    }> => {
-      return {
-        caches: {
-          open: async (): Promise<Cache> => {
-            return mockCache
-          },
-        },
-      }
-    },
-  }
-}
-
-type MockResponse = Response | (() => Response) | (() => never)
-
-type MockFetchOptions = {
-  getResponse?: MockResponse
-  onCall?: (url: string, method?: string) => Response | undefined
-  urlMatcher?: (url: string) => {
-    getResponse?: MockResponse
-  }
-}
-
-const getUrlString = (input: string): string => {
-  return input
-}
-
-const getRequestMethod = (method?: string): string => {
-  if (method) {
-    return method
-  }
-  return 'GET'
-}
-
-const getResponse = (mockResponse: MockResponse): Response => {
-  if (typeof mockResponse === 'function') {
-    return mockResponse()
-  }
-  return mockResponse
-}
-
-const getHeadEtag = (urlString: string): string => {
-  if (urlString.includes('api1')) {
-    return '"test-etag-1"'
-  }
-  if (urlString.includes('api2')) {
-    return '"test-etag-2"'
-  }
-  return '"test-etag"'
-}
-
-const getHeadResponse = (urlString: string, options: Readonly<MockFetchOptions>): Response | undefined => {
-  if (options.urlMatcher) {
-    const matched = options.urlMatcher(urlString)
-    if (matched?.getResponse) {
+const mockFetch = (
+  data: Readonly<typeof mockData> = mockData,
+  etag: string = '"test-etag"',
+  responseHeaders: Readonly<Record<string, string>> = {},
+  headStatus: number = 200,
+): jest.SpiedFunction<typeof fetch> => {
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types -- Jest's fetch signature uses mutable request init types.
+  return jest.spyOn(globalThis, 'fetch').mockImplementation(async (_input: Readonly<RequestInfo | URL>, init?: Readonly<RequestInit>) => {
+    if (init?.method === 'HEAD') {
       return new Response(null, {
-        headers: {
-          etag: getHeadEtag(urlString),
-        },
+        headers: etag ? { etag } : {},
+        status: headStatus,
+      })
+    }
+    return Response.json(data, { headers: responseHeaders })
+  })
+}
+
+// eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types -- Jest's spy type exposes mutable mock state.
+const getRequestMethods = (fetchMock: Readonly<jest.SpiedFunction<typeof fetch>>): string[] => {
+  // eslint-disable-next-line @typescript-eslint/prefer-readonly-parameter-types -- Jest exposes its call list as mutable tuples.
+  return fetchMock.mock.calls.map(([, init]) => init?.method ?? 'GET')
+}
+
+const registerCacheMock = (handlers: Readonly<Record<string, (...args: readonly unknown[]) => unknown>>): { [Symbol.dispose]: () => void } => {
+  return CacheWorker.registerMockRpc(handlers)
+}
+
+test('getJsonCached bypasses cache when useCache is false', async () => {
+  const fetchMock = mockFetch()
+  const cacheMock = registerCacheMock({})
+  try {
+    const result = await GetJsonCached.getJsonCached('https://example.com/api', false, bucketName, cacheName, locationProtocol)
+    expect(result).toEqual(mockData)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock.mock.calls[0][1]?.method).toBeUndefined()
+  } finally {
+    cacheMock[Symbol.dispose]()
+  }
+})
+
+test('getJsonCached reads and writes the cache worker using the ETag key and namespace', async () => {
+  const fetchMock = mockFetch(mockData, '"test-etag"', { 'x-test-header': 'preserved' })
+  const storedItems = new Map<string, { body: ArrayBuffer; headers: Readonly<Record<string, string>>; status: number; statusText: string }>()
+  const cacheMock = registerCacheMock({
+    'Cache.getCacheStorageItem': (key: unknown, actualCacheName: unknown, actualBucketName: unknown, bucketOptions: unknown) => {
+      expect(actualCacheName).toBe(cacheName)
+      expect(actualBucketName).toBe(bucketName)
+      expect(bucketOptions).toEqual({ expires: expect.any(Number), quota: 1000 * 1024 * 1024 })
+      return storedItems.get(String(key)) || null
+    },
+    'Cache.setCacheStorageItem': (
+      key: unknown,
+      body: unknown,
+      actualCacheName: unknown,
+      headers: unknown,
+      actualBucketName: unknown,
+      bucketOptions: unknown,
+    ) => {
+      expect(actualCacheName).toBe(cacheName)
+      expect(actualBucketName).toBe(bucketName)
+      expect(bucketOptions).toEqual({ expires: expect.any(Number), quota: 1000 * 1024 * 1024 })
+      storedItems.set(String(key), {
+        body: body as ArrayBuffer,
+        headers: headers as Readonly<Record<string, string>>,
         status: 200,
+        statusText: 'OK',
       })
-    }
-  }
-  if (options.getResponse) {
-    return new Response(null, {
-      headers: {
-        etag: '"test-etag"',
-      },
-      status: 200,
+      return { success: true }
+    },
+  })
+  try {
+    const result1 = await GetJsonCached.getJsonCached('https://example.com/api', true, bucketName, cacheName, locationProtocol)
+    const result2 = await GetJsonCached.getJsonCached('https://example.com/api', true, bucketName, cacheName, locationProtocol)
+    const expectedKey = await getIconThemeCacheKey('"test-etag"', '-', locationProtocol)
+
+    expect(result1).toEqual(mockData)
+    expect(result2).toEqual(mockData)
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+    expect(getRequestMethods(fetchMock).filter((method) => method === 'GET')).toHaveLength(1)
+    expect(storedItems.has(expectedKey)).toBe(true)
+    expect(storedItems.get(expectedKey)?.headers).toEqual({
+      'content-length': '1',
+      'content-type': 'application/json',
+      'x-test-header': 'preserved',
     })
+  } finally {
+    cacheMock[Symbol.dispose]()
   }
-  return undefined
-}
+})
 
-const getMatchedResponse = (urlString: string, options: Readonly<MockFetchOptions>): Response | undefined => {
-  if (!options.urlMatcher) {
-    return undefined
+test('getJsonCached falls back to GET when a HEAD response has no ETag', async () => {
+  const fetchMock = mockFetch(mockData, '')
+  const cacheMock = registerCacheMock({
+    'Cache.getCacheStorageItem': () => {
+      throw new Error('cache should not be read')
+    },
+  })
+  try {
+    const result = await GetJsonCached.getJsonCached('https://example.com/api', true, bucketName, cacheName, locationProtocol)
+    expect(result).toEqual(mockData)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(getRequestMethods(fetchMock)).toEqual(['HEAD', 'GET'])
+  } finally {
+    cacheMock[Symbol.dispose]()
   }
-  const matched = options.urlMatcher(urlString)
-  if (!matched?.getResponse) {
-    return undefined
+})
+
+test('getJsonCached falls back to GET when a HEAD response is not ok', async () => {
+  const fetchMock = mockFetch(mockData, '"test-etag"', {}, 404)
+  const cacheMock = registerCacheMock({})
+  try {
+    const result = await GetJsonCached.getJsonCached('https://example.com/api', true, bucketName, cacheName, locationProtocol)
+    expect(result).toEqual(mockData)
+    expect(getRequestMethods(fetchMock)).toEqual(['HEAD', 'GET'])
+  } finally {
+    cacheMock[Symbol.dispose]()
   }
-  return getResponse(matched.getResponse)
-}
-
-const mockFetch = (options: Readonly<MockFetchOptions>): void => {
-  jest.spyOn(globalThis, 'fetch').mockImplementation(async (...args: readonly unknown[]): Promise<Response> => {
-    const [input, init] = args as [string, Readonly<RequestInit> | undefined]
-    const urlString = getUrlString(input)
-    const method = getRequestMethod(init?.method)
-
-    const headResponse = options.onCall?.(urlString, method)
-    if (headResponse) {
-      return headResponse
-    }
-
-    if (method === 'HEAD') {
-      const response = getHeadResponse(urlString, options)
-      if (response) {
-        return response
-      }
-    }
-
-    const matchedResponse = getMatchedResponse(urlString, options)
-    if (matchedResponse) {
-      return matchedResponse
-    }
-
-    if (options.getResponse) {
-      return getResponse(options.getResponse)
-    }
-
-    throw new Error('No response configured for this request')
-  })
-}
-
-test('getJsonCached should call getJson when useCache is false', async () => {
-  const mockData = { name: 'test', value: 123 }
-  mockFetch({
-    getResponse: Response.json(mockData),
-  })
-
-  const locationProtocol = 'https:'
-
-  const result = await GetJsonCached.getJsonCached('https://example.com/api', false, 'test-bucket', 'test-cache', locationProtocol)
-
-  expect(result).toEqual(mockData)
 })
 
-test('getJsonCached should use cache when useCache is true', async () => {
-  const mockData = { name: 'test', value: 123 }
-  const mockCache = createMockCache()
-  setupMockStorageBuckets(mockCache)
-  let getCallCount = 0
-
-  mockFetch({
-    getResponse: () => {
-      getCallCount++
-      return Response.json(mockData, {
-        headers: {
-          etag: '"test-etag"',
-        },
-      })
+test('getJsonCached falls back to GET when cache RPC is unavailable', async () => {
+  const fetchMock = mockFetch()
+  const cacheMock = registerCacheMock({
+    'Cache.getCacheStorageItem': () => {
+      throw new Error('Cache worker unavailable')
     },
   })
-
-  const cacheName = `test-cache-${Date.now()}-${Math.random()}`
-  const result1 = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName, 'https:')
-  expect(result1).toEqual(mockData)
-  expect(getCallCount).toBe(1)
-
-  const result2 = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName, 'https:')
-  expect(result2).toEqual(mockData)
-  expect(getCallCount).toBe(1)
-})
-
-test('getJsonCached should reuse a provided content etag across deployment URLs without a HEAD request', async () => {
-  const mockData = { name: 'test', value: 123 }
-  const mockCache = createMockCache()
-  setupMockStorageBuckets(mockCache)
-  let getCallCount = 0
-  let headCallCount = 0
-
-  mockFetch({
-    getResponse: () => {
-      getCallCount++
-      return Response.json(mockData)
-    },
-    onCall: (_url: string, method?: string) => {
-      if (method === 'HEAD') {
-        headCallCount++
-      }
-      return undefined
-    },
-  })
-
-  const cacheName = `test-cache-${Date.now()}-${Math.random()}`
-  const etag = 'content-hash'
-  const result1 = await GetJsonCached.getJsonCached(
-    'https://example.com/first-deployment/icon-theme.json',
-    true,
-    'test-bucket',
-    cacheName,
-    'https:',
-    'test-theme',
-    etag,
-  )
-  const result2 = await GetJsonCached.getJsonCached(
-    'https://example.com/second-deployment/icon-theme.json',
-    true,
-    'test-bucket',
-    cacheName,
-    'https:',
-    'test-theme',
-    etag,
-  )
-
-  expect(result1).toEqual(mockData)
-  expect(result2).toEqual(mockData)
-  expect(getCallCount).toBe(1)
-  expect(headCallCount).toBe(0)
-})
-
-test('getJsonCached should throw VError when fetch fails and useCache is false', async () => {
-  mockFetch({
-    getResponse: () => {
-      throw new Error('Network error')
-    },
-  })
-
-  await expect(GetJsonCached.getJsonCached('https://example.com/api', false, 'test-bucket', 'test-cache', 'https:')).rejects.toThrow(VError)
-})
-
-test('getJsonCached should throw VError when fetch fails and useCache is true', async () => {
-  const mockCache = createMockCache()
-  setupMockStorageBuckets(mockCache)
-
-  mockFetch({
-    getResponse: () => {
-      throw new Error('Network error')
-    },
-  })
-
-  await expect(GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache', 'https:')).rejects.toThrow(VError)
-})
-
-test('getJsonCached should cache different URLs separately', async () => {
-  const mockData1 = { name: 'test1', value: 1 }
-  const mockData2 = { name: 'test2', value: 2 }
-  const mockCache = createMockCache()
-  setupMockStorageBuckets(mockCache)
-  let getCallCount = 0
-
-  mockFetch({
-    urlMatcher: (url: string) => {
-      if (url.includes('api1')) {
-        return {
-          getResponse: (): Response => {
-            getCallCount++
-            return Response.json(mockData1, {
-              headers: {
-                etag: '"test-etag-1"',
-              },
-            })
-          },
-        }
-      }
-      return {
-        getResponse: (): Response => {
-          getCallCount++
-          return Response.json(mockData2, {
-            headers: {
-              etag: '"test-etag-2"',
-            },
-          })
-        },
-      }
-    },
-  })
-
-  const cacheName = `test-cache-${Date.now()}-${Math.random()}`
-  const result1 = await GetJsonCached.getJsonCached('https://example.com/api1', true, 'test-bucket', cacheName, 'https:')
-  expect(result1).toEqual(mockData1)
-  expect(getCallCount).toBe(1)
-
-  const result2 = await GetJsonCached.getJsonCached('https://example.com/api2', true, 'test-bucket', cacheName, 'https:')
-  expect(result2).toEqual(mockData2)
-  expect(getCallCount).toBe(2)
-
-  const result1Cached = await GetJsonCached.getJsonCached('https://example.com/api1', true, 'test-bucket', cacheName, 'https:')
-  expect(result1Cached).toEqual(mockData1)
-  expect(getCallCount).toBe(2)
-
-  const result2Cached = await GetJsonCached.getJsonCached('https://example.com/api2', true, 'test-bucket', cacheName, 'https:')
-  expect(result2Cached).toEqual(mockData2)
-  expect(getCallCount).toBe(2)
-})
-
-test('getJsonCached should fallback to getJson when cache operations fail', async () => {
-  const mockData = { name: 'test', value: 999 }
-  let getCallCount = 0
-
-  const mockCache: Cache = {
-    async add(): Promise<void> {},
-    async addAll(): Promise<void> {},
-    async delete(): Promise<boolean> {
-      return false
-    },
-    async keys(): Promise<ReadonlyArray<Request>> {
-      return []
-    },
-    async match() {
-      throw new Error('Cache match failed')
-    },
-    async matchAll(): Promise<ReadonlyArray<Response>> {
-      return []
-    },
-    async put() {
-      throw new Error('Cache put failed')
-    },
+  try {
+    const result = await GetJsonCached.getJsonCached('https://example.com/api', true, bucketName, cacheName, locationProtocol)
+    expect(result).toEqual(mockData)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(getRequestMethods(fetchMock).filter((method) => method === 'GET')).toHaveLength(1)
+  } finally {
+    cacheMock[Symbol.dispose]()
   }
-  setupMockStorageBuckets(mockCache)
-
-  mockFetch({
-    getResponse: () => {
-      getCallCount++
-      return Response.json(mockData, {
-        headers: {
-          etag: '"test-etag"',
-        },
-      })
-    },
-  })
-
-  const result = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache', 'https:')
-  expect(result).toEqual(mockData)
-  expect(getCallCount).toBe(1)
 })
 
-test('getJsonCached should fallback to getJson when HEAD response is not ok', async () => {
-  const mockData = { name: 'test', value: 111 }
-  let getCallCount = 0
-  const mockCache = createMockCache()
-  setupMockStorageBuckets(mockCache)
-
-  mockFetch({
-    getResponse: () => {
-      getCallCount++
-      return Response.json(mockData)
-    },
-    onCall: (_input: string, method?: string) => {
-      if (method === 'HEAD') {
-        return new Response(null, {
-          status: 404,
-          statusText: 'Not Found',
-        })
-      }
-      return undefined
-    },
+test('getJsonCached falls back to GET when cached JSON is malformed', async () => {
+  const fetchMock = mockFetch()
+  const cacheMock = registerCacheMock({
+    'Cache.getCacheStorageItem': () => ({
+      body: new TextEncoder().encode('{').buffer,
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+      statusText: 'OK',
+    }),
   })
-
-  const cacheName = `test-cache-${Date.now()}-${Math.random()}`
-  const result = await GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', cacheName, 'https:')
-  expect(result).toEqual(mockData)
-  expect(getCallCount).toBe(1)
+  try {
+    const result = await GetJsonCached.getJsonCached('https://example.com/api', true, bucketName, cacheName, locationProtocol)
+    expect(result).toEqual(mockData)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+  } finally {
+    cacheMock[Symbol.dispose]()
+  }
 })
 
-test('getJsonCached should handle getJson error when fetch fails', async () => {
-  const mockCache = createMockCache()
-  setupMockStorageBuckets(mockCache)
-
-  mockFetch({
-    getResponse: () => {
-      throw new Error('GET request failed')
-    },
+test('getJsonCached falls back to GET when the cache worker reports a failed write', async () => {
+  const fetchMock = mockFetch()
+  const cacheMock = registerCacheMock({
+    'Cache.getCacheStorageItem': () => null,
+    'Cache.setCacheStorageItem': () => ({
+      errorCode: 'CACHE_STORAGE_WRITE_FAILED',
+      errorMessage: 'quota exceeded',
+      success: false,
+    }),
   })
+  try {
+    const result = await GetJsonCached.getJsonCached('https://example.com/api', true, bucketName, cacheName, locationProtocol)
+    expect(result).toEqual(mockData)
+    expect(fetchMock).toHaveBeenCalledTimes(3)
+  } finally {
+    cacheMock[Symbol.dispose]()
+  }
+})
 
-  await expect(GetJsonCached.getJsonCached('https://example.com/api', true, 'test-bucket', 'test-cache', 'https:')).rejects.toThrow(VError)
+test('getJsonCached preserves the VError from the network fallback', async () => {
+  jest.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+    throw new Error('Network error')
+  })
+  const cacheMock = registerCacheMock({})
+  try {
+    await expect(GetJsonCached.getJsonCached('https://example.com/api', false, bucketName, cacheName, locationProtocol)).rejects.toThrow(VError)
+  } finally {
+    cacheMock[Symbol.dispose]()
+  }
 })
