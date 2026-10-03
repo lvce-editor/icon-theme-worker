@@ -30,6 +30,29 @@ test('addLanguages should add languages with extensions to state', () => {
   expect(Languages.getLanguageId('test.tsx')).toBe('typescript')
 })
 
+test('getLanguageId should resolve contributed file names before extensions', () => {
+  const languages: readonly Language[] = [
+    {
+      extensionPath: '',
+      extensions: ['.off'],
+      fileNames: ['.project'],
+      id: 'xml',
+      tokenize: '',
+    },
+    {
+      extensionPath: '',
+      fileNames: ['.travis.yml.off'],
+      id: 'yaml',
+      tokenize: '',
+    },
+  ]
+
+  Languages.addLanguages(languages)
+
+  expect(Languages.getLanguageId('.PROJECT')).toBe('xml')
+  expect(Languages.getLanguageId('.TRAVIS.YML.OFF')).toBe('yaml')
+})
+
 test('addLanguages should handle languages without extensions', () => {
   const languages: readonly Language[] = [
     {
