@@ -4,6 +4,7 @@ import * as DefaultIcon from '../src/parts/DefaultIcon/DefaultIcon.ts'
 import * as GetIcon from '../src/parts/GetIcon/GetIcon.ts'
 import { getIcons } from '../src/parts/GetIcons/GetIcons.ts'
 import * as IconThemeState from '../src/parts/IconThemeState/IconThemeState.ts'
+import * as Languages from '../src/parts/Languages/Languages.ts'
 
 beforeEach(() => {
   jest.spyOn(console, 'warn').mockImplementation(() => {})
@@ -132,6 +133,33 @@ test('getIcons should use expanded folder icon for expanded folder requests', ()
 test('getFileNameIcon should handle empty filename', () => {
   const result = GetIcon.getFileNameIcon('')
   expect(typeof result).toBe('string')
+})
+
+test('getFileNameIcon should use contributed language file names to resolve language icons', () => {
+  Languages.reset()
+  Languages.addLanguages([
+    { extensionPath: '', extensions: ['.xml'], fileNames: ['.project'], id: 'xml', tokenize: '' },
+    { extensionPath: '', extensions: ['.yaml'], fileNames: ['.travis.yml.off'], id: 'yaml', tokenize: '' },
+  ])
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/theme',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: {
+      iconDefinitions: {
+        _f_xml: '/xml.svg',
+        _f_yaml: '/yaml.svg',
+      },
+      languageIds: {
+        xml: '_f_xml',
+        yaml: '_f_yaml',
+      },
+    },
+  })
+
+  expect(GetIcon.getFileNameIcon('.project')).toBe('/theme/xml.svg')
+  expect(GetIcon.getFileNameIcon('.travis.yml.off')).toBe('/theme/yaml.svg')
 })
 
 test('getFolderNameIcon should handle empty folder name', () => {
