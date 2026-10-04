@@ -16,12 +16,13 @@ test('waits for the cache worker readiness message before making rpc calls', asy
   const rpcRequestPromise = new Promise<any>((resolve) => {
     resolveRpcRequest = resolve
   })
-  mockRendererWorker.invokeAndTransfer.mockImplementation(async (_command: string, port: MessagePort) => {
-    cacheWorkerPort = port
-    port.addEventListener('message', (event: MessageEvent) => {
+  mockRendererWorker.invokeAndTransfer.mockImplementation(async (_command: unknown, port: unknown) => {
+    const messagePort = port as MessagePort
+    cacheWorkerPort = messagePort
+    messagePort.addEventListener('message', (event: MessageEvent) => {
       resolveRpcRequest(event.data)
     })
-    port.start()
+    messagePort.start()
   })
 
   const rpc = await createCacheWorkerRpc()
