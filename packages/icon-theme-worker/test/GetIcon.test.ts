@@ -166,3 +166,45 @@ test('getFolderNameIcon should handle empty folder name', () => {
   const result = GetIcon.getFolderNameIcon('')
   expect(typeof result).toBe('string')
 })
+
+test('getFileNameIcon normalizes the immutable filename table once across requests', () => {
+  const ownKeys = jest.fn(Reflect.ownKeys)
+  const fileNames = new Proxy({ 'README.MD': 'readme', 'Hello.TXT': 'hello', 'hello.txt': 'last' }, { ownKeys })
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/theme',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: { fileNames, iconDefinitions: { readme: '/readme.svg', hello: '/hello.svg', last: '/last.svg' } },
+  })
+
+  expect(GetIcon.getFileNameIcon('Readme.md')).toBe('/theme/readme.svg')
+  expect(GetIcon.getFileNameIcon('HELLO.txt')).toBe('/theme/last.svg')
+  expect(GetIcon.getFileNameIcon('README.MD')).toBe('/theme/readme.svg')
+  expect(ownKeys).toHaveBeenCalledTimes(1)
+
+  // A new theme must resolve its own table, even for an already requested name.
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/other',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: { fileNames: { 'readme.md': 'changed' }, iconDefinitions: { changed: '/changed.svg' } },
+  })
+  expect(GetIcon.getFileNameIcon('README.MD')).toBe('/other/changed.svg')
+  IconThemeState.setTheme(undefined)
+})
+
+test('getFileNameIcon handles filename keys that are object property names', () => {
+  const fileNames = JSON.parse('{"__proto__":"special","constructor":"special"}')
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/theme',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: { fileNames, iconDefinitions: { special: '/special.svg' } },
+  })
+  expect(GetIcon.getFileNameIcon('__PROTO__')).toBe('/theme/special.svg')
+  expect(GetIcon.getFileNameIcon('CONSTRUCTOR')).toBe('/theme/special.svg')
+  IconThemeState.setTheme(undefined)
+})

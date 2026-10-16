@@ -9,11 +9,21 @@ import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 import * as Languages from '../Languages/Languages.ts'
 import * as Logger from '../Logger/Logger.ts'
 
-const toLowerCaseMap = (map: Readonly<Record<string, string>>): Record<string, string> => {
-  return Object.fromEntries(Object.entries(map).map((entry: readonly [string, unknown]) => [entry[0].toLowerCase(), entry[1]] as const)) as Record<
-    string,
-    string
-  >
+// Themes expose immutable filename tables. Weak keys let replaced themes and
+// their normalized tables be collected together.
+const lowerCaseMaps = new WeakMap<Readonly<Record<string, string>>, Readonly<Record<string, string>>>()
+
+const toLowerCaseMap = (map: Readonly<Record<string, string>>): Readonly<Record<string, string>> => {
+  const cached = lowerCaseMaps.get(map)
+  if (cached) {
+    return cached
+  }
+  const result: Record<string, string> = Object.create(null)
+  for (const key of Object.keys(map)) {
+    result[key.toLowerCase()] = map[key]
+  }
+  lowerCaseMaps.set(map, result)
+  return result
 }
 
 export interface NamedEntry {
