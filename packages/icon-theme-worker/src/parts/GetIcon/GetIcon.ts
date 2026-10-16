@@ -19,6 +19,8 @@ const toLowerCaseMap = (map: Readonly<Record<string, string>>): Readonly<Record<
     return cached
   }
   const result: Record<string, string> = Object.create(null)
+  // Avoid allocating an entry pair for every filename in the cold lookup path.
+  // eslint-disable-next-line unicorn/prefer-object-iterable-methods
   for (const key of Object.keys(map)) {
     result[key.toLowerCase()] = map[key]
   }

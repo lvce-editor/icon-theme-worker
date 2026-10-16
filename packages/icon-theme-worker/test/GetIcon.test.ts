@@ -168,20 +168,21 @@ test('getFolderNameIcon should handle empty folder name', () => {
 })
 
 test('getFileNameIcon normalizes the immutable filename table once across requests', () => {
-  const ownKeys = jest.fn(Reflect.ownKeys)
-  const fileNames = new Proxy<Record<string, string>>({ 'README.MD': 'readme', 'Hello.TXT': 'hello', 'hello.txt': 'last' }, { ownKeys })
+  const readName = jest.fn(() => 'readme')
+  const fileNames = { 'Hello.TXT': 'hello', 'hello.txt': 'last' }
+  Object.defineProperty(fileNames, 'README.MD', { enumerable: true, get: readName })
   IconThemeState.setTheme({
     extensionBaseUrl: '/theme',
     extensionPath: '',
     extensionRemoteUri: '',
     extensionUri: '',
-    json: { fileNames, iconDefinitions: { readme: '/readme.svg', hello: '/hello.svg', last: '/last.svg' } },
+    json: { fileNames, iconDefinitions: { hello: '/hello.svg', last: '/last.svg', readme: '/readme.svg' } },
   })
 
   expect(GetIcon.getFileNameIcon('Readme.md')).toBe('/theme/readme.svg')
   expect(GetIcon.getFileNameIcon('HELLO.txt')).toBe('/theme/last.svg')
   expect(GetIcon.getFileNameIcon('README.MD')).toBe('/theme/readme.svg')
-  expect(ownKeys).toHaveBeenCalledTimes(1)
+  expect(readName).toHaveBeenCalledTimes(1)
 
   // A new theme must resolve its own table, even for an already requested name.
   IconThemeState.setTheme({
