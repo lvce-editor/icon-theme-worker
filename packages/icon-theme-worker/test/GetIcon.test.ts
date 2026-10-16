@@ -169,7 +169,7 @@ test('getFolderNameIcon should handle empty folder name', () => {
 
 test('getFileNameIcon normalizes the immutable filename table once across requests', () => {
   const ownKeys = jest.fn(Reflect.ownKeys)
-  const fileNames = new Proxy({ 'README.MD': 'readme', 'Hello.TXT': 'hello', 'hello.txt': 'last' }, { ownKeys })
+  const fileNames = new Proxy<Record<string, string>>({ 'README.MD': 'readme', 'Hello.TXT': 'hello', 'hello.txt': 'last' }, { ownKeys })
   IconThemeState.setTheme({
     extensionBaseUrl: '/theme',
     extensionPath: '',
