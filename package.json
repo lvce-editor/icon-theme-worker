@@ -28,5 +28,10 @@
     "eslint": "10.9.1",
     "prettier": "^3.8.3",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "@lvce-editor/test-with-playwright-worker": {
+      "@playwright/test": "1.60.0"
+    }
   }
 }
