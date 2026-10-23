@@ -1,8 +1,8 @@
-import * as Assert from '../Assert/Assert.ts'
+import { string } from '../Assert/Assert.ts'
 import * as Character from '../Character/Character.ts'
 
 export const getFileExtensionIndex = (file: string): number => {
-  Assert.string(file)
+  string(file)
   return file.lastIndexOf(Character.Dot)
 }
 

@@ -1,0 +1,12 @@
+import { join } from 'node:path'
+import { root } from './root.js'
+
+export const threshold = 412_000
+
+export const instantiations = 12_000
+
+export const instantiationsPath = join(root, 'packages', 'icon-theme-worker')
+
+export const workerPath = join(root, '.tmp/dist/dist/iconThemeWorkerMain.js')
+
+export const playwrightPath = new URL('../../../node_modules/playwright/index.mjs', import.meta.url).toString()

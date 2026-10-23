@@ -1,4 +1,5 @@
-import { getFileIcon, getFolderIcon, getIcons } from '../GetIcon/GetIcon.ts'
+import { getFileIcon, getFolderIcon } from '../GetIcon/GetIcon.ts'
+import { getIcons } from '../GetIcons/GetIcons.ts'
 import { loadIconThemeJson } from '../GetIconThemeJson/GetIconThemeJson.ts'
 import { handleMessagePort } from '../HandleMessagePort/HandleMessagePort.ts'
 import { addLanguages } from '../Languages/Languages.ts'

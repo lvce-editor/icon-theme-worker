@@ -1,8 +1,10 @@
+import type { IconThemeExtension } from '../IconThemeExtension/IconThemeExtension.ts'
+import type { LoadedIconTheme } from '../LoadedIconTheme/LoadedIconTheme.ts'
 import { doGetIconThemeJson } from '../DoGetIconThemeJson/DoGetIconThemeJson.ts'
 import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 
 // TODO use cache storage or indexeddb for caching color theme
-// use unique cache key based on content hash and/or commit hash
+// use unique cache key based on content hash
 // when it's not cached, fetch should be quite fast
 // though one needs to take care to not allow this worker or any worker
 // read arbitrary files on disk
@@ -10,11 +12,19 @@ import * as IconThemeState from '../IconThemeState/IconThemeState.ts'
 // TODO not sure whether this worker should query all extensions
 // or the extension host worker or another worker
 
-export const loadIconThemeJson = async (extensions: readonly any[], iconThemeId: string, assetDir: string, platform: number): Promise<any> => {
+export const loadIconThemeJson = async (
+  extensions: readonly IconThemeExtension[],
+  iconThemeId: string | null,
+  assetDir: string,
+  platform: number,
+  useCache: boolean,
+  etag = '',
+): Promise<LoadedIconTheme | '' | undefined> => {
   if (!iconThemeId) {
+    IconThemeState.setTheme(undefined)
     return ''
   }
-  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform)
+  const json = await doGetIconThemeJson(extensions, iconThemeId, assetDir, platform, useCache, etag)
   IconThemeState.setTheme(json)
   return json
 }

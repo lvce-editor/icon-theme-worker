@@ -1,26 +1,64 @@
 import { PlatformType } from '@lvce-editor/constants'
+import type { IconThemeExtension } from '../IconThemeExtension/IconThemeExtension.ts'
+import type { LoadedIconTheme } from '../LoadedIconTheme/LoadedIconTheme.ts'
 import * as FindMatchingIconThemeExtension from '../FindMatchingIconThemeExtension/FindMatchingIconThemeExtension.ts'
+import { getIconThemeJsonUrl } from '../GetIconThemeJsonUrl/GetIconThemeJsonUrl.ts'
 import * as GetIconThemeUrl from '../GetIconThemeUrl/GetIconThemeUrl.ts'
-import * as GetJson from '../GetJson/GetJson.ts'
+import { getJsonCached } from '../GetJsonCached/GetJsonCached.ts'
+import { parseIconTheme } from '../IconTheme/IconTheme.ts'
+import { optimizeBuiltinIconTheme } from '../OptimizeBuiltinIconTheme/OptimizeBuiltinIconTheme.ts'
 
-export const doGetIconThemeJson = async (extensions: readonly any[], iconThemeId: string, assetDir: string, platform: number): Promise<any> => {
+const isDisabledIconTheme = (extensions: readonly IconThemeExtension[], iconThemeId: string): boolean => {
+  return extensions.some((extension) => {
+    return extension?.disabled && extension.iconThemes?.some((iconTheme) => iconTheme.id === iconThemeId)
+  })
+}
+
+export const doGetIconThemeJson = async (
+  extensions: readonly IconThemeExtension[],
+  iconThemeId: string,
+  assetDir: string,
+  platform: number,
+  useCache: boolean,
+  etag: string,
+): Promise<LoadedIconTheme | undefined> => {
+  const cacheName = 'lvce-editor-icon-themes'
+  const bucketName = 'lvce-editor-icon-themes'
+  const locationProtocol = location.protocol
   if (platform === PlatformType.Web) {
+    if (isDisabledIconTheme(extensions, iconThemeId)) {
+      return undefined
+    }
     const url = GetIconThemeUrl.getIconThemeUrl(assetDir, iconThemeId)
-    const json = await GetJson.getJson(url)
+    const json = parseIconTheme(await getJsonCached(url, useCache, bucketName, cacheName, locationProtocol, iconThemeId, etag))
     return {
-      json,
-      extensionPath: `${assetDir}/extensions/builtin.${iconThemeId}`,
       extensionBaseUrl: `${assetDir}/extensions/builtin.${iconThemeId}`,
+      extensionPath: `${assetDir}/extensions/builtin.${iconThemeId}`,
+      extensionRemoteUri: `${assetDir}/extensions/builtin.${iconThemeId}`,
+      extensionUri: `${assetDir}/extensions/builtin.${iconThemeId}`,
+      json,
     }
   }
-  const iconTheme = FindMatchingIconThemeExtension.findMatchingIconThemeExtension(extensions, iconThemeId)
+  const iconTheme = FindMatchingIconThemeExtension.findMatchingIconThemeExtension(extensions, iconThemeId, platform)
   if (!iconTheme) {
     return undefined
   }
-  const iconThemePath = `${iconTheme.extensionPath}/${iconTheme.path}`
-  const iconThemeJson = await GetJson.getJson(iconThemePath)
+  const iconThemeUrl = getIconThemeJsonUrl(iconTheme)
+  const iconThemeJson = parseIconTheme(await getJsonCached(iconThemeUrl, useCache, bucketName, cacheName, locationProtocol, iconThemeId, etag))
+  if (platform === PlatformType.Electron && iconTheme.extensionId === 'builtin.vscode-icons') {
+    return {
+      extensionBaseUrl: assetDir,
+      extensionPath: iconTheme.extensionPath,
+      extensionRemoteUri: '',
+      extensionUri: iconTheme.extensionUri || '',
+      json: optimizeBuiltinIconTheme(iconThemeJson, iconTheme.extensionId),
+    }
+  }
   return {
+    extensionBaseUrl: iconTheme.extensionRemoteUri || '',
     extensionPath: iconTheme.extensionPath,
+    extensionRemoteUri: iconTheme.extensionRemoteUri || '',
+    extensionUri: iconTheme.extensionUri || '',
     json: iconThemeJson,
   }
 }

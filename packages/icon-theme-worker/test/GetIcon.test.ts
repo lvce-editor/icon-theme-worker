@@ -1,7 +1,15 @@
-import { test, expect } from '@jest/globals'
+import { test, expect, jest, beforeEach } from '@jest/globals'
 import type { Dirent } from '../src/parts/Dirent/Dirent.ts'
 import * as DefaultIcon from '../src/parts/DefaultIcon/DefaultIcon.ts'
 import * as GetIcon from '../src/parts/GetIcon/GetIcon.ts'
+import { getIcons } from '../src/parts/GetIcons/GetIcons.ts'
+import * as IconThemeState from '../src/parts/IconThemeState/IconThemeState.ts'
+import * as Languages from '../src/parts/Languages/Languages.ts'
+
+beforeEach(() => {
+  jest.spyOn(console, 'warn').mockImplementation(() => {})
+  jest.spyOn(console, 'error').mockImplementation(() => {})
+})
 
 test('getFileNameIcon should return empty string when no iconTheme', () => {
   // This test verifies the basic behavior when iconTheme is null
@@ -85,11 +93,41 @@ test('getIcons should handle mixed file and folder requests', () => {
     { name: 'src', type: 2 }, // Folder
   ]
 
-  const result = GetIcon.getIcons(requests)
+  const result = getIcons(requests)
   expect(Array.isArray(result)).toBe(true)
   expect(result).toHaveLength(2)
   expect(typeof result[0]).toBe('string')
   expect(typeof result[1]).toBe('string')
+})
+
+test('getIcons should use expanded folder icon for expanded folder requests', () => {
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/remote',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: {
+      folderNames: {
+        packages: 'folder-packages',
+      },
+      folderNamesExpanded: {
+        packages: 'folder-packages-open',
+      },
+      iconDefinitions: {
+        _folder: '/folder.svg',
+        _folder_open: '/folder-open.svg',
+        'folder-packages': '/folder-packages.svg',
+        'folder-packages-open': '/folder-packages-open.svg',
+      },
+    },
+  })
+
+  const result = getIcons([
+    { name: 'packages', type: 2 },
+    { expanded: true, name: 'packages', type: 2 },
+  ])
+
+  expect(result).toEqual(['/remote/folder-packages.svg', '/remote/folder-packages-open.svg'])
 })
 
 test('getFileNameIcon should handle empty filename', () => {
@@ -97,7 +135,77 @@ test('getFileNameIcon should handle empty filename', () => {
   expect(typeof result).toBe('string')
 })
 
+test('getFileNameIcon should use contributed language file names to resolve language icons', () => {
+  Languages.reset()
+  Languages.addLanguages([
+    { extensionPath: '', extensions: ['.xml'], fileNames: ['.project'], id: 'xml', tokenize: '' },
+    { extensionPath: '', extensions: ['.yaml'], fileNames: ['.travis.yml.off'], id: 'yaml', tokenize: '' },
+  ])
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/theme',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: {
+      iconDefinitions: {
+        _f_xml: '/xml.svg',
+        _f_yaml: '/yaml.svg',
+      },
+      languageIds: {
+        xml: '_f_xml',
+        yaml: '_f_yaml',
+      },
+    },
+  })
+
+  expect(GetIcon.getFileNameIcon('.project')).toBe('/theme/xml.svg')
+  expect(GetIcon.getFileNameIcon('.travis.yml.off')).toBe('/theme/yaml.svg')
+})
+
 test('getFolderNameIcon should handle empty folder name', () => {
   const result = GetIcon.getFolderNameIcon('')
   expect(typeof result).toBe('string')
+})
+
+test('getFileNameIcon normalizes the immutable filename table once across requests', () => {
+  const readName = jest.fn(() => 'readme')
+  const fileNames = { 'Hello.TXT': 'hello', 'hello.txt': 'last' }
+  Object.defineProperty(fileNames, 'README.MD', { enumerable: true, get: readName })
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/theme',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: { fileNames, iconDefinitions: { hello: '/hello.svg', last: '/last.svg', readme: '/readme.svg' } },
+  })
+
+  expect(GetIcon.getFileNameIcon('Readme.md')).toBe('/theme/readme.svg')
+  expect(GetIcon.getFileNameIcon('HELLO.txt')).toBe('/theme/last.svg')
+  expect(GetIcon.getFileNameIcon('README.MD')).toBe('/theme/readme.svg')
+  expect(readName).toHaveBeenCalledTimes(1)
+
+  // A new theme must resolve its own table, even for an already requested name.
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/other',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: { fileNames: { 'readme.md': 'changed' }, iconDefinitions: { changed: '/changed.svg' } },
+  })
+  expect(GetIcon.getFileNameIcon('README.MD')).toBe('/other/changed.svg')
+  IconThemeState.setTheme(undefined)
+})
+
+test('getFileNameIcon handles filename keys that are object property names', () => {
+  const fileNames = JSON.parse('{"__proto__":"special","constructor":"special"}')
+  IconThemeState.setTheme({
+    extensionBaseUrl: '/theme',
+    extensionPath: '',
+    extensionRemoteUri: '',
+    extensionUri: '',
+    json: { fileNames, iconDefinitions: { special: '/special.svg' } },
+  })
+  expect(GetIcon.getFileNameIcon('__PROTO__')).toBe('/theme/special.svg')
+  expect(GetIcon.getFileNameIcon('CONSTRUCTOR')).toBe('/theme/special.svg')
+  IconThemeState.setTheme(undefined)
 })

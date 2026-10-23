@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-global-object-property-assignment */
 import { test, expect, beforeEach } from '@jest/globals'
 import { VError } from '@lvce-editor/verror'
 
@@ -15,8 +16,8 @@ test('getJson should return parsed JSON when fetch succeeds', async () => {
   const mockData = { name: 'test', value: 123 }
   globalThis.fetch = async (): Promise<Response> => {
     return {
-      ok: true,
       json: async () => mockData,
+      ok: true,
     } as unknown as Response
   }
 
@@ -49,10 +50,10 @@ test('getJson should throw VError when fetch fails', async () => {
 test('getJson should throw VError when JSON parsing fails', async () => {
   globalThis.fetch = async (): Promise<Response> => {
     return {
-      ok: true,
       json: async () => {
         throw new Error('Invalid JSON')
       },
+      ok: true,
     } as unknown as Response
   }
 
@@ -73,8 +74,8 @@ test('getJson should handle different data types', async () => {
   for (const testCase of testCases) {
     globalThis.fetch = async (): Promise<Response> => {
       return {
-        ok: true,
         json: async () => testCase.data,
+        ok: true,
       } as unknown as Response
     }
 
