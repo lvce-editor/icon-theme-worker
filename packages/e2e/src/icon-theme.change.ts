@@ -2,9 +2,7 @@ import type { Test } from '@lvce-editor/test-with-playwright'
 
 export const name = 'icon-theme.change'
 
-export const skip = true
-
-export const test: Test = async ({ BaseUrl, expect, Extension, FileSystem, IconTheme, Locator, Workspace }: Readonly<Parameters<typeof test>[0]>) => {
+export const test: Test = async ({ expect, Extension, FileSystem, IconTheme, Locator, Workspace }: Readonly<Parameters<typeof test>[0]>) => {
   // arrange
   const tmpDir = await FileSystem.getTmpDir()
   await FileSystem.writeFile(`${tmpDir}/test.xyz`, 'test')
@@ -16,7 +14,6 @@ export const test: Test = async ({ BaseUrl, expect, Extension, FileSystem, IconT
   await IconTheme.setIconTheme('test-icon-theme')
 
   // assert
-  const iconFile = Locator('.TreeItem[aria-label="test.xyz"] .FileIcon')
-  const baseUrl = BaseUrl.getBaseUrl()
-  await expect(iconFile).toHaveAttribute('src', `${baseUrl}packages/extension-host-worker-tests/fixtures/sample.icon-theme/icons/default_file.svg`)
+  const iconFile = Locator('.TreeItem[aria-label="test.xyz"] .FileIcon[src$="/sample.icon-theme/icons/default_file.svg"]')
+  await expect(iconFile).toBeVisible()
 }
